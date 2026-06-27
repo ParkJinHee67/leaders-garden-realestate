@@ -1,0 +1,59 @@
+import { Link } from 'react-router-dom';
+import { Phone, Menu } from 'lucide-react';
+import { useSiteSettings } from '../context/SiteContext';
+
+export default function Header() {
+  const siteSettings = useSiteSettings();
+  const name = siteSettings?.name || '리더스가든 부동산';
+  const phone = siteSettings?.phone || '010-4630-0363';
+
+  const handleResetHome = () => {
+    sessionStorage.removeItem('filter_property_type');
+    sessionStorage.removeItem('filter_transaction_type');
+    sessionStorage.removeItem('filter_verification_type');
+    sessionStorage.removeItem('filter_expiry');
+    sessionStorage.removeItem('filter_keyword');
+    sessionStorage.removeItem('home_scroll_y');
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <Link to="/" onClick={handleResetHome} className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
+            {name.charAt(0)}
+          </div>
+          <span className="font-bold text-xl text-brand-green">{name}</span>
+        </Link>
+        
+        <nav className="hidden md:flex gap-6 text-gray-600 font-medium">
+          <Link to="/" onClick={handleResetHome} className="hover:text-brand-orange transition">매물검색</Link>
+          <a href="https://031-858-4955.asil.kr/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition flex items-center gap-1">
+            🏘️ 전체매물
+          </a>
+          <Link to="/gtx" className="text-brand-orange font-bold hover:text-orange-700 transition flex items-center gap-1">
+            <span className="animate-pulse">🚀</span> GTX-C 호재
+          </Link>
+          <a href="https://budongsan-lab.tistory.com/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition flex items-center gap-1">
+            📝 블로그
+          </a>
+          <a href="/#about" className="hover:text-brand-orange transition">회사소개</a>
+          <a href="/#location" className="hover:text-brand-orange transition">오시는 길</a>
+          <Link to="/consult/request" className="hover:text-brand-orange transition">상담 신청</Link>
+          <Link to="/consult/view" className="hover:text-brand-orange transition">상담 내역 조회</Link>
+          <Link to="/admin" className="text-brand-green hover:text-brand-orange transition font-bold">Admin</Link>
+        </nav>
+
+        <div className="flex items-center gap-4">
+          <a href={`tel:${phone}`} className="hidden md:flex items-center gap-2 bg-brand-orange text-white px-4 py-2 rounded-full font-bold hover:bg-orange-700 transition shadow-md">
+            <Phone size={18} />
+            상담문의
+          </a>
+          <button className="md:hidden text-gray-600">
+            <Menu size={24} />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}

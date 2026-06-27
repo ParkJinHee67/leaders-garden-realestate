@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>리더스가든 부동산 - 구글독스 매뉴얼 변환기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --text-muted: #5f6368;
+      --border: #dadce0;
+      --success: #1e8e3e;
+      --accent: #e8f0fe;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .guide-card {
+      background-color: var(--accent);
+      border-left: 5px solid var(--primary);
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+
+    .guide-card h2 {
+      font-size: 1.2rem;
+      color: var(--primary-hover);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-card ol {
+      padding-left: 20px;
+      font-size: 0.95rem;
+    }
+
+    .guide-card li {
+      margin-bottom: 6px;
+    }
+
+    .action-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .action-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 25px;
+      flex-grow: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+    }
+
+    .btn-success:hover {
+      background-color: #137333;
+    }
+
+    /* 알림창 애니메이션 */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: #323232;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      font-size: 0.95rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* 프리뷰 스타일 영역 */
+    .preview-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      margin-top: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+    }
+
+    .preview-header h2 {
+      font-size: 1.5rem;
+    }
+
+    .preview-content {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 10px;
+      border: 1px dashed var(--border);
+      padding: 20px;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📋 구글독스(Google Docs) 매뉴얼 복사 도구</h1>
+    <p>리더스가든 부동산 홈페이지의 사용자 및 운영자 매뉴얼을 구글독스에 서식 깨짐 없이 붙여넣을 수 있도록 도와줍니다.</p>
+  </header>
+
+  <div class="guide-card">
+    <h2>💡 사용 방법 (매우 간단합니다!)</h2>
+    <ol>
+      <li>아래 카드에서 원하는 매뉴얼의 <strong>[구글독스용 서식 복사하기]</strong> 버튼을 클릭합니다.</li>
+      <li>클립보드에 서식이 적용된 상태로 자동 복사됩니다.</li>
+      <li>새 <strong>구글독스(Google Docs) 문서</strong>를 엽니다.</li>
+      <li>마우스 우클릭 후 <strong>'붙여넣기'</strong> (단축키: <code>Ctrl + V</code>)를 누르면 글자 크기, 색상, 표 스타일이 유지된 상태로 예쁘게 입력됩니다!</li>
+    </ol>
+  </div>
+
+  <div class="action-panel">
+    <!-- 사용자 매뉴얼 -->
+    <div class="card">
+      <div>
+        <h3>🏠 홈페이지 사용자 매뉴얼</h3>
+        <p>일반 방문 고객 및 홈페이지 회원들이 매물을 찾고, 상세 정보를 확인하고, 온라인 상담 신청을 진행하는 전 과정을 담은 매뉴얼입니다.</p>
+      </div>
+      <button class="btn btn-success" onclick="copyManual('user')">
+        📋 구글독스용 서식 복사하기
+      </button>
+    </div>
+
+    <!-- 운영자 매뉴얼 -->
+    <div class="card">
+      <div>
+        <h3>💼 홈페이지 운영자 매뉴얼</h3>
+        <p>중개소 대표님과 운영 담당자를 위한 매뉴얼로, 로그인 방법부터 사이트 환경 설정(슬로건, 이미지), 매물 등록/수정, 상담 신청 관리 및 자가 진단 방법까지 포함하고 있습니다.</p>
+      </div>
+      <button class="btn btn-success" onclick="copyManual('operator')">
+        📋 구글독스용 서식 복사하기
+      </button>
+    </div>
+  </div>
+
+  <div class="preview-section">
+    <div class="preview-header">
+      <h2 id="preview-title">👀 매뉴얼 미리보기 (사용자 매뉴얼)</h2>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">실제 구글독스에 붙여넣기 될 서식의 축소판입니다.</span>
+    </div>
+    <div class="preview-content" id="preview-box">
+      <!-- 미리보기 내용 로드 예정 -->
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 알림창 -->
+<div id="toast" class="toast">
+  <span>✅ 성공적으로 클립보드에 복사되었습니다! 구글독스에 붙여넣으세요.</span>
+</div>
+
+<!-- 실제 복사용 HTML 데이터 정의 -->
+<div id="html-source-user" style="display: none;">
+  <div style="font-family: Arial, sans-serif; font-size: 11pt; color: #3c4043; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <h1 style="font-family: Arial, sans-serif; font-size: 22pt; color: #1a73e8; font-weight: bold; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; margin-top: 24pt; margin-bottom: 12pt;">🏠 리더스가든 부동산 홈페이지 - 사용자 이용 매뉴얼</h1>
+    
+    <div style="background-color: #f1f3f4; border-left: 4px solid #5f6368; padding: 12px 18px; margin-bottom: 18pt; border-radius: 4px;">
+      <p style="margin: 0; font-weight: bold; color: #202124;">대상: 홈페이지 일반 방문객 및 상담 신청 고객</p>
+      <p style="margin: 4px 0 0 0; font-size: 10pt; color: #5f6368;">최종 업데이트: 2026년 5월 | 버전: 1.0</p>
+    </div>
+
+    <h2 style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt; border-bottom: 1px solid #dadce0; padding-bottom: 4px;">📋 목차</h2>
+    <ol style="margin-bottom: 14pt; padding-left: 20px; font-size: 11pt;">
+      <li style="margin-bottom: 6px;"><a href="#menu-1" style="color: #1a73e8; text-decoration: none;">1. 홈페이지 첫 화면(메인) 이용하기</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-2" style="color: #1a73e8; text-decoration: none;">2. 매물 검색 및 필터링 기능</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-3" style="color: #1a73e8; text-decoration: none;">3. 매물 상세 정보 확인</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-4" style="color: #1a73e8; text-decoration: none;">4. 온라인 간편 상담 신청 방법</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-5" style="color: #1a73e8; text-decoration: none;">5. 나의 상담 신청 내역 및 진행 상태 조회</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-6" style="color: #1a73e8; text-decoration: none;">6. 교통 개발 정보(GTX) 조회</a></li>
+      <li style="margin-bottom: 6px;"><a href="#menu-7" style="color: #1a73e8; text-decoration: none;">7. 자주 묻는 질문 (FAQ)</a></li>
+    </ol>
+
+    <hr style="border: 0; border-top: 1px solid #dadce0; margin: 20pt 0;">
+
+    <h2 id="menu-1" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">1. 홈페이지 첫 화면(메인) 이용하기</h2>
+    <p style="margin-bottom: 10pt;">홈페이지에 접속하면 깔끔한 디자인의 첫 화면을 보실 수 있습니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;"><strong>슬로건 및 대표 인사말:</strong> 중개소의 가치와 최신 주요 공지를 확인할 수 있습니다.</li>
+      <li style="margin-bottom: 6px;"><strong>추천 매물 카드:</strong> 대표 중개사가 엄선한 급매물이나 우수 매물이 첫 화면 중간에 노출됩니다. 매물 카드를 클릭하면 바로 상세 화면으로 이동합니다.</li>
+      <li style="margin-bottom: 6px;"><strong>영업시간 및 긴급공지:</strong> 화면 가장 아래(푸터) 영역에서 오늘의 영업 여부와 공지사항(예: 명절 휴무 등)을 실시간으로 확인하실 수 있습니다.</li>
+      <li style="margin-bottom: 6px;"><strong>사무실 위치 파악:</strong> 하단에 내장된 <strong>네이버 지도</strong>를 통해 정확한 사무실 위치와 대중교통 이용 안내를 볼 수 있습니다.</li>
+    </ul>
+
+    <h2 id="menu-2" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">2. 매물 검색 및 필터링 기능</h2>
+    <p style="margin-bottom: 10pt;">많은 매물 중에서 고객님이 원하시는 조건의 부동산을 쉽고 빠르게 찾을 수 있습니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;"><strong>상단 필터바 활용:</strong> [건물 종류] 필터(아파트, 상가, 오피스텔, 빌라 등)와 [거래 방식] 필터(매매, 전세, 월세)를 선택하여 실시간으로 필터링할 수 있습니다.</li>
+      <li style="margin-bottom: 6px;"><strong>보기 방식 설정:</strong> 우측 상단의 <strong>[리스트 뷰 / 카드 뷰]</strong> 전환 버튼을 눌러, 사진 중심으로 볼지 혹은 표 목록 형태로 모아볼지 선택할 수 있습니다.</li>
+    </ul>
+
+    <h2 id="menu-3" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">3. 매물 상세 정보 확인</h2>
+    <p style="margin-bottom: 10pt;">원하는 매물을 클릭하면 세부 계약 조건 및 구조를 깊이 있게 파악할 수 있는 상세 페이지가 제공됩니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;"><strong>고화질 사진 슬라이더:</strong> 매물의 내부 구조, 인테리어 및 주변 환경 사진을 좌우 슬라이드로 꼼꼼하게 검토할 수 있습니다.</li>
+      <li style="margin-bottom: 6px;"><strong>매물 요약 표:</strong> 면적(공급/전용), 가격(보증금, 월세), 층수, 방과 욕실 개수 정보가 가독성 높은 표 형식으로 정리되어 있습니다.</li>
+      <li style="margin-bottom: 6px;"><strong>상세 설명 및 중개사 한마디:</strong> 중개사가 직접 적은 입지 분석, 학군 정보, 입주 가능일 등 상세한 특징을 확인할 수 있습니다.</li>
+    </ul>
+
+    <h2 id="menu-4" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">4. 온라인 간편 상담 신청 방법</h2>
+    <p style="margin-bottom: 10pt;">전화 통화가 어렵거나 주말/야간에도 간편하게 상담 예약을 남길 수 있습니다.</p>
+    <ol style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;">매물 상세 정보 하단 또는 메인 화면의 <strong>[온라인 상담 신청]</strong> 버튼을 누릅니다.</li>
+      <li style="margin-bottom: 6px;"><strong>상담 폼 작성:</strong>
+        <ul style="margin-top: 4px; padding-left: 20px;">
+          <li style="margin-bottom: 4px;"><strong>성함 / 연락처:</strong> 연락받으실 정확한 번호를 남겨주세요.</li>
+          <li style="margin-bottom: 4px;"><strong>문의 유형:</strong> 매매, 전세, 월세, 투자 상담 등 대분류를 선택합니다.</li>
+          <li style="margin-bottom: 4px;"><strong>희망 조건 입력:</strong> 예) "32평 아파트 5억 이하 전세 찾고 있습니다. 입주는 8월 중순 희망합니다." 처럼 상세 조건을 기재하시면 더욱 매끄러운 상담이 진행됩니다.</li>
+        </ul>
+      </li>
+      <li style="margin-bottom: 6px;">작성을 마친 후 <strong>[상담 신청서 제출]</strong> 버튼을 클릭합니다. 중개사에게 실시간으로 접수 알림이 전송됩니다.</li>
+    </ol>
+
+    <h2 id="menu-5" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">5. 나의 상담 신청 내역 및 진행 상태 조회</h2>
+    <p style="margin-bottom: 10pt;">내가 신청했던 조건이 정상적으로 기록되어 검토 중인지 직접 모니터링할 수 있습니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;">홈페이지 우측 상단 또는 햄버거 메뉴에서 <strong>[상담 신청 확인]</strong> 메뉴로 이동합니다.</li>
+      <li style="margin-bottom: 6px;">신청 시 사용했던 <strong>이름</strong>과 <strong>휴대폰 번호</strong>를 입력한 후 조회 버튼을 누릅니다.</li>
+      <li style="margin-bottom: 6px;"><strong>상태 표시 유형:</strong>
+        <table style="border-collapse: collapse; width: 100%; margin-top: 8px; margin-bottom: 8px;">
+          <thead>
+            <tr style="background-color: #f1f3f4;">
+              <th style="border: 1px solid #dadce0; padding: 8px; text-align: left; font-weight: bold;">상태값</th>
+              <th style="border: 1px solid #dadce0; padding: 8px; text-align: left; font-weight: bold;">의미 설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold; color: #d93025;">대기중</td>
+              <td style="border: 1px solid #dadce0; padding: 8px;">신청이 성공적으로 접수되어 담당 중개사가 매물 분석 및 준비 중인 상태입니다.</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold; color: #1e8e3e;">완료</td>
+              <td style="border: 1px solid #dadce0; padding: 8px;">중개사 확인 및 전화/메시지 상담이 완료되어 조치 완료된 상태입니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <h2 id="menu-6" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">6. 교통 개발 정보(GTX) 조회</h2>
+    <p style="margin-bottom: 10pt;">양주 옥정 신도시 등 해당 지역의 가치를 상승시키는 핵심 철도망(GTX) 개발 현황과 노선도를 홈페이지의 별도 전용 탭에서 간편하게 읽어보실 수 있습니다.</p>
+
+    <h2 id="menu-7" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">7. 자주 묻는 질문 (FAQ)</h2>
+    <div style="margin-bottom: 12pt;">
+      <p style="margin-bottom: 4px; font-weight: bold; color: #1a73e8;">Q. 비회원도 상담 신청이 가능한가요?</p>
+      <p style="margin-bottom: 10pt; padding-left: 12px; border-left: 3px solid #1a73e8;">A. 네, 별도의 회원가입 없이 성함과 연락처 정보만 입력하면 손쉽게 상담 신청이 가능합니다.</p>
+      
+      <p style="margin-bottom: 4px; font-weight: bold; color: #1a73e8;">Q. 상담 내역을 삭제하거나 수정하고 싶습니다.</p>
+      <p style="margin-bottom: 10pt; padding-left: 12px; border-left: 3px solid #1a73e8;">A. 개인 정보 보호 및 허위 신청 방지를 위해 직접 수정/삭제는 제한됩니다. 홈페이지 하단의 대표 번호나 카카오톡 상담을 통해 담당자에게 직접 요청해 주시기 바랍니다.</p>
+    </div>
+  </div>
+</div>
+
+<div id="html-source-operator" style="display: none;">
+  <!-- 운영자 매뉴얼 HTML 정의 (Google Docs 최적화) -->
+  <div style="font-family: Arial, sans-serif; font-size: 11pt; color: #3c4043; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <h1 style="font-family: Arial, sans-serif; font-size: 22pt; color: #1a73e8; font-weight: bold; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; margin-top: 24pt; margin-bottom: 12pt;">🏡 부동산 중개소 홈페이지 플랫폼 - 운영자 매뉴얼</h1>
+    
+    <div style="background-color: #e8f0fe; border-left: 4px solid #1a73e8; padding: 12px 18px; margin-bottom: 18pt; border-radius: 4px;">
+      <p style="margin: 0; font-weight: bold; color: #1a73e8;">대상: 홈페이지 관리 및 운영 담당자 (중개사 본인 및 직원)</p>
+      <p style="margin: 4px 0 0 0; font-size: 10pt; color: #5f6368;">최종 업데이트: 2026년 5월 | 버전: 1.0</p>
+    </div>
+
+    <h2 style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt; border-bottom: 1px solid #dadce0; padding-bottom: 4px;">📋 목차</h2>
+    <ol style="margin-bottom: 14pt; padding-left: 20px; font-size: 11pt;">
+      <li style="margin-bottom: 6px;"><a href="#op-1" style="color: #1a73e8; text-decoration: none;">1. 시스템 개요</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-2" style="color: #1a73e8; text-decoration: none;">2. 관리자 로그인</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-3" style="color: #1a73e8; text-decoration: none;">3. 사이트 환경 설정 (핵심)</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-4" style="color: #1a73e8; text-decoration: none;">4. 매물 관리</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-5" style="color: #1a73e8; text-decoration: none;">5. 상담 신청 관리</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-6" style="color: #1a73e8; text-decoration: none;">6. 기준정보 관리 (공통코드)</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-7" style="color: #1a73e8; text-decoration: none;">7. 신규 중개소 초기 세팅 가이드</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-8" style="color: #1a73e8; text-decoration: none;">8. 자주 묻는 질문 (FAQ)</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-9" style="color: #1a73e8; text-decoration: none;">9. 문제 발생 시 연락처</a></li>
+      <li style="margin-bottom: 6px;"><a href="#op-10" style="color: #1a73e8; text-decoration: none;">10. 시스템 상태 진단 및 자가 해결 가이드</a></li>
+    </ol>
+
+    <hr style="border: 0; border-top: 1px solid #dadce0; margin: 20pt 0;">
+
+    <h2 id="op-1" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">1. 시스템 개요</h2>
+    <p style="margin-bottom: 10pt;">이 홈페이지는 <strong>화이트라벨(White-label) 방식</strong>으로 설계된 부동산 중개소 전용 플랫폼입니다. 별도의 웹 코딩 지식이 없어도, 관리자 페이지에서 텍스트와 이미지 정보를 업데이트하면 대외 웹페이지에 즉시 실시간 배포 반영됩니다.</p>
+
+    <table style="border-collapse: collapse; width: 100%; margin-top: 10pt; margin-bottom: 12pt;">
+      <thead>
+        <tr style="background-color: #f1f3f4;">
+          <th style="border: 1px solid #dadce0; padding: 8px; text-align: left; font-weight: bold; width: 30%;">기능 구분</th>
+          <th style="border: 1px solid #dadce0; padding: 8px; text-align: left; font-weight: bold;">운영 제어 범위 설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">🖼️ 메인 비주얼</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">대형 히어로 배경 이미지 및 사무소 홍보용 대표 사진/명함 업로드</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">💬 슬로건 문구</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">메인 및 서브 슬로건 내용 자유 편집 및 추천 템플릿 로딩 지원</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">🕐 영업 시간</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">평일, 토요일, 일요일, 공휴일 개별 운영 시간 입력 자동 표시</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">📢 특별 공지</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">명절 휴무, 휴가 기간 등 일시적인 중요 공지사항 하단 강조 노출</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">🏠 매물 관리</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">매물 등록, 삭제, 추천 설정 및 고화질 사진 여러 장 일괄 업로드</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold;">📋 상담 신청 모니터링</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">접수건 목록 조회 및 접수 대기/완료 처리 기능, 이메일 알림 자동 발송</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="op-2" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">2. 관리자 로그인</h2>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;"><strong>접속 주소:</strong> 홈페이지 도메인 주소 뒤에 <code>/admin</code> 을 붙여 접속합니다.<br>예시: <code>https://leadersgarden-re.com/admin</code></li>
+      <li style="margin-bottom: 6px;"><strong>로그인 절차:</strong> 제공받은 관리자 패스워드를 입력창에 넣고 로그인 버튼을 누릅니다.</li>
+    </ul>
+    <div style="background-color: #fce8e6; border-left: 4px solid #d93025; padding: 10px 15px; margin-bottom: 14pt; border-radius: 4px;">
+      <p style="margin: 0; color: #a51d24; font-weight: bold;">⚠️ 주의사항:</p>
+      <p style="margin: 4px 0 0 0; font-size: 9.5pt; color: #a51d24;">관리자 패스워드는 외부나 다른 사람에게 절대 노출되지 않도록 기밀을 유지하십시오. 분실 시 Supabase DB 패스워드 환경 변수 수정이 필요합니다.</p>
+    </div>
+
+    <h2 id="op-3" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">3. 사이트 환경 설정 (핵심)</h2>
+    <p style="margin-bottom: 10pt;">로그인 직후 <strong>[사이트 환경 설정]</strong> 탭을 클릭하여 주요 브랜드 요소를 세팅합니다.</p>
+    
+    <h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #3c4043; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt;">3-1. 기본 정보 설정</h3>
+    <p style="margin-bottom: 8pt;">상호명, 대표자 이름, 전화번호, 주소를 입력창에 채워줍니다. 이 정보는 모든 페이지의 헤더(상단) 및 푸터(하단 사업자 정보)에 자동 파싱되어 표시됩니다.</p>
+    
+    <h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #3c4043; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt;">3-2. 사이트 이미지 세팅</h3>
+    <ul style="margin-bottom: 10pt; padding-left: 20px;">
+      <li style="margin-bottom: 4px;"><strong>대표(명함) 이미지:</strong> 홈페이지 중단의 대표자 소개 카드로 사용됩니다.</li>
+      <li style="margin-bottom: 4px;"><strong>메인 배경(히어로) 이미지:</strong> 첫 화면 배너 배경으로 쓰입니다. 16:9 비율의 깨끗한 풍경이나 매장 사진을 권장합니다.</li>
+    </ul>
+
+    <h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #3c4043; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt;">3-3. 슬로건 및 영업시간 설정</h3>
+    <p style="margin-bottom: 8pt;">메인 슬로건 및 서브 슬로건 문구를 입력합니다. 드롭다운 템플릿에서 미리 정의된 문구를 가져와 수정할 수도 있습니다. 영업시간은 요일별로 텍스트 형태로 적어두면 하단에 출력됩니다.</p>
+
+    <h2 id="op-4" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">4. 매물 관리</h2>
+    <p style="margin-bottom: 10pt;"><strong>[매물 관리]</strong> 탭에서 실시간 매물 대장을 업데이트합니다.</p>
+    
+    <h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #3c4043; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt;">4-1. 신규 매물 등록</h3>
+    <p style="margin-bottom: 8pt;">새로운 매물이 들어온 경우, 매물 제목, 주소, 건물 종류, 가격, 면적 및 설명글을 양식에 입력하고 사진파일을 첨부(최대 10개)한 뒤 <strong>[등록하기]</strong> 버튼을 누르면 DB에 영구 저장됩니다.</p>
+    
+    <h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #3c4043; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt;">4-2. 매물 수정 및 삭제</h3>
+    <p style="margin-bottom: 8pt;">현재 매물 대장 리스트가 하단에 노출되며, 불필요해진 매물은 <strong>[삭제]</strong> 버튼을 통해 지울 수 있습니다. 수정이 필요하다면 기존 매물을 삭제한 후 수정된 내용으로 재생성(재등록)하시는 방법을 이용하시기 바랍니다.</p>
+
+    <h2 id="op-5" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">5. 상담 신청 관리</h2>
+    <p style="margin-bottom: 10pt;">방문객들이 가입 절차 없이 문의한 접수 내역은 <strong>[상담신청 관리]</strong> 탭에 기록됩니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;">신규 신청건은 이메일로 즉시 자동 알림이 전송됩니다.</li>
+      <li style="margin-bottom: 6px;">조회된 리스트에서 상담 완료 여부에 따라 진행 상태를 <strong>[대기중 / 완료]</strong>로 토글하여 상담 기록을 효율적으로 관리할 수 있습니다.</li>
+    </ul>
+
+    <h2 id="op-6" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">6. 기준정보 관리 (공통코드)</h2>
+    <p style="margin-bottom: 10pt;">매물 작성 시 나오는 드롭다운 옵션인 '건물 종류'(예: 아파트, 오피스텔), '거래 방식'(예: 매매, 전세) 및 슬로건 문구 사전의 목록을 자유롭게 추가하거나 삭제할 수 있는 고급 설정 페이지입니다.</p>
+
+    <h2 id="op-7" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">7. 신규 중개소 초기 세팅 가이드</h2>
+    <p style="margin-bottom: 10pt;">새로운 부동산에 이 화이트라벨 홈페이지 솔루션을 이관 및 납품할 때는 아래 순서대로 진행합니다.</p>
+    <ol style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;">Supabase 신규 프로젝트 개설 및 SQL 스키마 스크립트 실행 (consultations, storage, agencies, slogan_codes 관련 5종 셋업 스크립트 실행)</li>
+      <li style="margin-bottom: 6px;"><code>agencies</code> 테이블에 신규 지점 레코드(대표명, 상호명, 주소 등) 삽입</li>
+      <li style="margin-bottom: 6px;">로컬 <code>.env</code> 파일의 환경 변수(Supabase URL, Anon Key, Admin Password)를 교체</li>
+      <li style="margin-bottom: 6px;">관리자 페이지(<code>/admin</code>)에 최초 진입하여 대표 이미지와 슬로건, 이메일 연동 키(EmailJS)를 최종 설정합니다.</li>
+    </ol>
+
+    <h2 id="op-8" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">8. 자주 묻는 질문 (FAQ)</h2>
+    <div style="margin-bottom: 12pt;">
+      <p style="margin-bottom: 4px; font-weight: bold; color: #1a73e8;">Q. 이미지를 올렸으나 바로 보이지 않습니다.</p>
+      <p style="margin-bottom: 10pt; padding-left: 12px; border-left: 3px solid #1a73e8;">A. 하단의 [환경 설정 저장하기]를 반드시 꾹 누르고 파일 업로드가 완료될 때까지 잠시 대기한 후 홈페이지를 새로고침(F5)하십시오.</p>
+      
+      <p style="margin-bottom: 4px; font-weight: bold; color: #1a73e8;">Q. 임시 긴급공지를 지우고 싶습니다.</p>
+      <p style="margin-bottom: 10pt; padding-left: 12px; border-left: 3px solid #1a73e8;">A. 공지사항 텍스트 박스를 완전히 공백(비워둠) 상태로 입력하고 저장하시면 홈페이지 하단의 오렌지색 긴급공지 바가 자동으로 숨김 처리됩니다.</p>
+    </div>
+
+    <h2 id="op-9" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">9. 문제 발생 시 연락처</h2>
+    <table style="border-collapse: collapse; width: 100%; margin-top: 8px; margin-bottom: 12pt;">
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold; background-color: #f1f3f4; width: 30%;">기술 지원 담당자</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">톱니바꿈</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #dadce0; padding: 8px; font-weight: bold; background-color: #f1f3f4;">긴급 연락처</td>
+          <td style="border: 1px solid #dadce0; padding: 8px;">010-5036-0846 (카카오톡 실시간 상담 가능)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="op-10" style="font-family: Arial, sans-serif; font-size: 16pt; color: #202124; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">10. 시스템 상태 진단 및 자가 해결 가이드</h2>
+    <p style="margin-bottom: 8pt;">시스템에 예기치 못한 API 연결 오류나 DB 조회가 막히는 경우, 화면 하단의 <strong>[🛠️ 시스템 상태 진단 및 자가 해결]</strong> 버튼 혹은 주소창의 <code>/diagnostics</code> 경로로 들어가 자가 수리 작업을 수행할 수 있습니다.</p>
+    <ul style="margin-bottom: 12pt; padding-left: 20px;">
+      <li style="margin-bottom: 6px;"><strong>인터넷 연결 상태 점검:</strong> 외부 연결 상태를 실시간 체크합니다.</li>
+      <li style="margin-bottom: 6px;"><strong>임시 환경 변수(API KEY) 교체:</strong> 비상시 정상 키를 임시 투입해 기동 여부를 확인하고 수정된 `.env` 구문을 복사해 사용할 수 있게 도와줍니다.</li>
+      <li style="margin-bottom: 6px;"><strong>Supabase DB 진단:</strong> 필수 서비스 테이블 4종의 쿼리 상태를 추적하고, 테이블이 깨지거나 미구축인 경우 이를 복구할 SQL 코드 복사를 지원합니다.</li>
+      <li style="margin-bottom: 6px;"><strong>네이버 지도 VPC 대응:</strong> 최신 클라우드 VPC 지도 호출 API 대응을 위한 <code>ncpKeyId</code> 스위칭 설정 상태를 진단합니다.</li>
+      <li style="margin-bottom: 6px;"><strong>이메일 전송 테스트:</strong> 가짜 데이터를 이용해 메일을 실시간 발송해보고 통신 결과값(200 OK 등)을 직접 확인하여 이메일 모듈 장애를 테스트해볼 수 있습니다.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // 페이지 로드 시 기본 미리보기로 사용자 매뉴얼 탑재
+  document.getElementById('preview-box').innerHTML = document.getElementById('html-source-user').innerHTML;
+
+  function copyManual(type) {
+    let sourceId = '';
+    let title = '';
+    if (type === 'user') {
+      sourceId = 'html-source-user';
+      title = '👀 매뉴얼 미리보기 (사용자 매뉴얼)';
+    } else if (type === 'operator') {
+      sourceId = 'html-source-operator';
+      title = '👀 매뉴얼 미리보기 (운영자 매뉴얼)';
+    }
+
+    const htmlContent = document.getElementById(sourceId).innerHTML;
+    
+    // 미리보기 화면 업데이트
+    document.getElementById('preview-box').innerHTML = htmlContent;
+    document.getElementById('preview-title').innerText = title;
+
+    // 클립보드에 HTML 서식 복사 진행
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const clipboardData = [new ClipboardItem({ 'text/html': blob })];
+
+    navigator.clipboard.write(clipboardData).then(() => {
+      showToast();
+    }).catch(err => {
+      // 보안 상의 이유로 https가 아니거나 권한 차단 등의 경우 예외처리
+      console.error('클립보드 복사 실패:', err);
+      // 대체 텍스트 복사 시도
+      const dummy = document.createElement('div');
+      dummy.innerHTML = htmlContent;
+      const textContent = dummy.innerText;
+      
+      navigator.clipboard.writeText(textContent).then(() => {
+        showToast("텍스트 서식으로 복사되었습니다 (일부 서식이 제한될 수 있습니다).");
+      }).catch(e => {
+        alert("복사에 실패했습니다. 브라우저 권한을 확인해주세요.");
+      });
+    });
+  }
+
+  function showToast(customMessage) {
+    const toast = document.getElementById('toast');
+    if (customMessage) {
+      toast.querySelector('span').innerText = customMessage;
+    } else {
+      toast.querySelector('span').innerText = "✅ 성공적으로 클립보드에 복사되었습니다! 구글독스에 붙여넣으세요.";
+    }
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+</script>
+
+</body>
+</html>
