@@ -17,7 +17,10 @@ export default function Header() {
     
     if (window.location.pathname === '/') {
       e.preventDefault();
-      window.location.href = '/';
+      // 커스텀 이벤트를 발생시켜 Home 컴포넌트의 React 상태를 초기화합니다.
+      window.dispatchEvent(new CustomEvent('reset-home-filters'));
+      // 최상단으로 부드럽게 스크롤합니다.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -31,8 +34,13 @@ export default function Header() {
     
     if (window.location.pathname === '/') {
       e.preventDefault();
-      window.location.hash = 'properties';
-      window.location.reload();
+      // 커스텀 이벤트를 발생시켜 Home 컴포넌트의 React 상태를 초기화합니다.
+      window.dispatchEvent(new CustomEvent('reset-home-filters'));
+      // 매물 영역(properties)으로 부드럽게 스크롤합니다.
+      const element = document.getElementById('properties');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     } else {
       e.preventDefault();
       window.location.href = '/#properties';

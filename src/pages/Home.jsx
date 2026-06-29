@@ -101,6 +101,20 @@ export default function Home() {
     fetchProperties();
   }, []);
 
+  // 헤더 링크 클릭 시 필터 초기화 이벤트 리스너
+  useEffect(() => {
+    const handleReset = () => {
+      setSelectedPropertyType('ALL');
+      setSelectedTransactionType('ALL');
+      setSelectedVerificationType('ALL');
+      setSelectedExpiryFilter('ALL');
+      setSearchKeyword('');
+    };
+    
+    window.addEventListener('reset-home-filters', handleReset);
+    return () => window.removeEventListener('reset-home-filters', handleReset);
+  }, []);
+
   // 스크롤 위치 감지 및 저장
   useEffect(() => {
     const handleScroll = () => {
