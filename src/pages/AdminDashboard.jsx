@@ -93,8 +93,8 @@ export default function AdminDashboard() {
   const [selectedImportIndices, setSelectedImportIndices] = useState([]);
   const [selectedCompleteIds, setSelectedCompleteIds] = useState([]);
   const [showImportPreview, setShowImportPreview] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [expiryFilter, setExpiryFilter] = useState('ALL');
+  const [showMapGuide, setShowMapGuide] = useState(false);
 
   const handleAsilImport = (e) => {
     const file = e.target.files[0];
@@ -1795,10 +1795,45 @@ export default function AdminDashboard() {
               <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">API 환경 변수 세팅</h3>
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">네이버 지도 Client ID</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-bold text-gray-700">네이버 지도 Client ID</label>
+                      <button 
+                        type="button"
+                        onClick={() => setShowMapGuide(!showMapGuide)}
+                        className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 focus:outline-none bg-purple-50 px-2.5 py-1 rounded-md transition hover:bg-purple-100"
+                      >
+                        ℹ️ 설정 가이드 보기
+                      </button>
+                    </div>
                     <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.naver_map_client_id || ''} onChange={e => setSiteSettings({...siteSettings, naver_map_client_id: e.target.value})} />
-                  </div>
+                    
+                    {showMapGuide && (
+                      <div className="mt-3 p-4 bg-white border border-purple-100 rounded-xl text-xs text-gray-600 space-y-2.5 shadow-sm">
+                        <div className="font-bold text-purple-800 flex items-center gap-1 text-sm">
+                          📋 네이버 지도 API 올바른 세팅 방법
+                        </div>
+                        <ol className="list-decimal pl-4 space-y-1.5 leading-relaxed">
+                          <li>
+                            <strong>네이버 클라우드 플랫폼 콘솔 접속</strong>: <a href="https://console.ncloud.com" target="_blank" rel="noreferrer" className="text-blue-600 underline font-bold hover:text-blue-800">console.ncloud.com</a>에 로그인합니다.
+                          </li>
+                          <li>
+                            <strong>지도 메뉴 이동</strong>: 왼쪽 상단 <code>三 Menu</code> 버튼 &gt; <code>Application Services</code> &gt; <code>Maps</code> 메뉴로 이동합니다.
+                          </li>
+                          <li>
+                            <strong>인증 정보 확인</strong>: <code>Readers-Garden</code> 애플리케이션의 <code>인증 정보</code> 버튼을 클릭합니다.
+                          </li>
+                          <li>
+                            <strong>서비스 URL 등록 확인</strong>: 팝업창 하단의 <strong>Web 서비스 URL</strong>에 현재 배포된 주소인 <code className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-bold">https://leaders-garden-realestate.vercel.app</code> 이 등록되어 있는지 확인합니다. 만약 없다면 연필 아이콘을 눌러 추가하고 저장해 줍니다.
+                          </li>
+                          <li>
+                            <strong>Client ID 입력</strong>: 팝업창에서 확인한 <code>Client ID</code> 값을 복사하여 위 입력 칸에 넣고 하단의 <code>[환경 설정 저장하기]</code> 버튼을 클릭해 완료합니다.
+                          </li>
+                        </ol>
+                        <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-[11px] text-amber-800 leading-relaxed font-medium">
+                          ⚠️ <strong>주의</strong>: 구버전 메뉴인 <code>AI·NAVER API</code>에서 확인한 키는 작동하지 않습니다. 반드시 <strong><code>Maps</code></strong> 메뉴의 키를 사용해야 합니다.
+                        </div>
+                      </div>
+                    )}
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Service ID</label>
