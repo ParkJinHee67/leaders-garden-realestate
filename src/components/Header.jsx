@@ -7,13 +7,18 @@ export default function Header() {
   const name = siteSettings?.name || '리더스가든 부동산';
   const phone = siteSettings?.phone || '010-4630-0363';
 
-  const handleResetHome = () => {
+  const handleResetHome = (e) => {
     sessionStorage.removeItem('filter_property_type');
     sessionStorage.removeItem('filter_transaction_type');
     sessionStorage.removeItem('filter_verification_type');
     sessionStorage.removeItem('filter_expiry');
     sessionStorage.removeItem('filter_keyword');
     sessionStorage.removeItem('home_scroll_y');
+    
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      window.location.href = '/';
+    }
   };
 
   return (
