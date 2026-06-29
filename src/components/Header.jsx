@@ -21,6 +21,24 @@ export default function Header() {
     }
   };
 
+  const handleGoToSearch = (e) => {
+    sessionStorage.removeItem('filter_property_type');
+    sessionStorage.removeItem('filter_transaction_type');
+    sessionStorage.removeItem('filter_verification_type');
+    sessionStorage.removeItem('filter_expiry');
+    sessionStorage.removeItem('filter_keyword');
+    sessionStorage.removeItem('home_scroll_y');
+    
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      window.location.hash = 'properties';
+      window.location.reload();
+    } else {
+      e.preventDefault();
+      window.location.href = '/#properties';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -32,7 +50,7 @@ export default function Header() {
         </Link>
         
         <nav className="hidden md:flex gap-6 text-gray-600 font-medium">
-          <Link to="/" onClick={handleResetHome} className="hover:text-brand-orange transition">매물검색</Link>
+          <Link to="/#properties" onClick={handleGoToSearch} className="hover:text-brand-orange transition">매물검색</Link>
           <a href="https://031-858-4955.asil.kr/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition flex items-center gap-1">
             🏘️ 전체매물
           </a>

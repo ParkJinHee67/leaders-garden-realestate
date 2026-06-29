@@ -213,7 +213,7 @@ export default function Home() {
         </section>
 
         {/* Property List Section */}
-        <section className="py-20 container mx-auto px-4">
+        <section id="properties" className="py-20 container mx-auto px-4">
           <div className="flex justify-between items-end mb-6">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">매물 안내</h2>
