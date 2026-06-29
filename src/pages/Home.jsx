@@ -115,6 +115,21 @@ export default function Home() {
     return () => window.removeEventListener('reset-home-filters', handleReset);
   }, []);
 
+  // 타 페이지에서 매물검색 클릭하여 유입 시 스크롤 처리
+  useEffect(() => {
+    const scrollToSection = sessionStorage.getItem('scroll_to_properties');
+    if (scrollToSection === 'true' && propertiesList.length > 0) {
+      sessionStorage.removeItem('scroll_to_properties');
+      const timer = setTimeout(() => {
+        const element = document.getElementById('properties');
+        if (element) {
+          element.scrollIntoView({ behavior: 'auto' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [propertiesList]);
+
   // 스크롤 위치 감지 및 저장
   useEffect(() => {
     const handleScroll = () => {

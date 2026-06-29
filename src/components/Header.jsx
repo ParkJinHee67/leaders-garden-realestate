@@ -19,8 +19,8 @@ export default function Header() {
       e.preventDefault();
       // 커스텀 이벤트를 발생시켜 Home 컴포넌트의 React 상태를 초기화합니다.
       window.dispatchEvent(new CustomEvent('reset-home-filters'));
-      // 최상단으로 부드럽게 스크롤합니다.
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // 최상단으로 즉시 스크롤합니다.
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
 
@@ -36,14 +36,17 @@ export default function Header() {
       e.preventDefault();
       // 커스텀 이벤트를 발생시켜 Home 컴포넌트의 React 상태를 초기화합니다.
       window.dispatchEvent(new CustomEvent('reset-home-filters'));
-      // 매물 영역(properties)으로 부드럽게 스크롤합니다.
+      // 매물 영역(properties)으로 즉시 스크롤합니다.
       const element = document.getElementById('properties');
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: 'auto' });
       }
     } else {
       e.preventDefault();
-      window.location.href = '/#properties';
+      // 다른 페이지에서는 플래그를 심어둔 뒤 메인 페이지로 이동시켜, 
+      // 메인 컴포넌트가 마운트되고 나서 매물 리스트 위치로 즉시 스크롤하도록 처리합니다.
+      sessionStorage.setItem('scroll_to_properties', 'true');
+      window.location.href = '/';
     }
   };
 
