@@ -95,6 +95,7 @@ export default function AdminDashboard() {
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [expiryFilter, setExpiryFilter] = useState('ALL');
   const [showMapGuide, setShowMapGuide] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleAsilImport = (e) => {
     const file = e.target.files[0];
