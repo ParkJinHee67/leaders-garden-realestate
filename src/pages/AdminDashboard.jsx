@@ -95,6 +95,7 @@ export default function AdminDashboard() {
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [expiryFilter, setExpiryFilter] = useState('ALL');
   const [showMapGuide, setShowMapGuide] = useState(false);
+  const [showEmailGuide, setShowEmailGuide] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleAsilImport = (e) => {
@@ -1835,18 +1836,60 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     )}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Service ID</label>
-                      <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_service_id || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_service_id: e.target.value})} />
+                  <div className="border-t border-gray-200/50 pt-4 mt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-gray-400 tracking-wider">📧 EmailJS 알림 설정</span>
+                      <button 
+                        type="button"
+                        onClick={() => setShowEmailGuide(!showEmailGuide)}
+                        className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 focus:outline-none bg-purple-50 px-2.5 py-1 rounded-md transition hover:bg-purple-100"
+                      >
+                        ℹ️ EmailJS 설정 가이드 {showEmailGuide ? '닫기' : '보기'}
+                      </button>
                     </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Template ID</label>
-                      <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_template_id || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_template_id: e.target.value})} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Public Key</label>
-                      <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_public_key || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_public_key: e.target.value})} />
+
+                    {showEmailGuide && (
+                      <div className="mb-4 p-4 bg-white border border-purple-100 rounded-xl text-xs text-gray-600 space-y-2.5 shadow-sm">
+                        <div className="font-bold text-purple-800 flex items-center gap-1 text-sm">
+                          📧 EmailJS 알림 메일 올바른 세팅 방법
+                        </div>
+                        <p className="leading-relaxed">
+                          고객이 상담 신청을 완료했을 때 소장님 이메일로 알림을 자동으로 받아보기 위한 서비스 설정입니다. 
+                          <a href="https://www.emailjs.com" target="_blank" rel="noreferrer" className="text-blue-600 underline font-bold hover:text-blue-800 ml-1">emailjs.com</a> 서비스 가입 후 각각 아래와 같이 입력합니다.
+                        </p>
+                        <ol className="list-decimal pl-4 space-y-1.5 leading-relaxed">
+                          <li>
+                            <strong>EmailJS Service ID</strong>: 
+                            콘솔의 <code>Email Services</code> 메뉴에서 연동된 메일 서비스 ID를 입력합니다. (예: <code>service_kqmnpww</code>)
+                          </li>
+                          <li>
+                            <strong>EmailJS Template ID</strong>: 
+                            콘솔의 <code>Email Templates</code> 메뉴에서 생성한 메일 내용 서식의 ID를 입력합니다. (예: <code>template_lyallw5</code>)
+                          </li>
+                          <li>
+                            <strong>EmailJS Public Key</strong>: 
+                            콘솔 우측 상단 프로필 &gt; <code>Account</code> &gt; <code>API Keys</code> 메뉴의 <code>Public Key</code> 값을 복사해 입력합니다. (예: <code>ft57CB2BWlgkPtVI_</code>)
+                          </li>
+                        </ol>
+                        <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-[11px] text-amber-800 leading-relaxed font-medium">
+                          💡 <strong>꿀팁</strong>: 입력 및 저장 후 상단의 <strong>[진단 및 모니터링]</strong> 탭 &gt; <strong>[EmailJS 실시간 메일 전송 테스트]</strong> 메뉴에서 정상 발송 여부를 즉시 검증할 수 있습니다.
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Service ID</label>
+                        <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_service_id || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_service_id: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Template ID</label>
+                        <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_template_id || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_template_id: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">EmailJS Public Key</label>
+                        <input className="w-full px-4 py-2 border rounded-lg font-mono text-sm" value={siteSettings.emailjs_public_key || ''} onChange={e => setSiteSettings({...siteSettings, emailjs_public_key: e.target.value})} />
+                      </div>
                     </div>
                   </div>
                 </div>
