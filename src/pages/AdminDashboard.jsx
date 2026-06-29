@@ -1915,12 +1915,31 @@ export default function AdminDashboard() {
 
               {/* 1. 시스템 개요 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>시스템 개요</h3>
+                <h3 className="text-xl font-bold text-gray-850 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                  시스템 개요
+                </h3>
+                <p className="text-gray-650 text-sm mb-4 leading-relaxed">
+                  본 관리자 대시보드는 리더스가든 부동산 홈페이지의 매물 상태, 메일 발송 설정, 그리고 영업 정보 등의 레이아웃을 실시간으로 관리하는 플랫폼 컨트롤 타워입니다.
+                </p>
                 <div className="grid md:grid-cols-3 gap-4">
-                  {[{icon:'🖼️',title:'대문 이미지',desc:'사무실/배경 사진 업로드'},{icon:'💬',title:'슬로건 문구',desc:'메인/서브 슬로건 자유 편집'},{icon:'🕐',title:'영업시간',desc:'요일별 개별 설정'},{icon:'📢',title:'특별 공지',desc:'휴가/명절 실시간 공지'},{icon:'📱',title:'명함 이미지',desc:'대표자 명함/사진 업로드'},{icon:'🏠',title:'매물 관리',desc:'매물 등록/수정/삭제'},{icon:'📋',title:'상담 신청',desc:'고객 문의 내용 확인'},{icon:'🗺️',title:'지도 연동',desc:'네이버 지도 사무소 표시'},{icon:'📧',title:'이메일 알림',desc:'상담 신청 시 자동 발송'}].map(f => (
-                    <div key={f.title} className="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                  {[
+                    {icon:'🖼️',title:'대문 이미지',desc:'상단 대형 배경 이미지 업로드/변경'},
+                    {icon:'💬',title:'슬로건 문구',desc:'홈페이지 메인 슬로건 실시간 수정'},
+                    {icon:'🕐',title:'영업시간',desc:'요일/휴무일 별 시간 정보 개별 설정'},
+                    {icon:'📢',title:'특별 공지',desc:'휴가/휴무일 등 오렌지색 긴급 배너 공지'},
+                    {icon:'📱',title:'명함 이미지',desc:'대표자 프로필 및 명함 사진 변경'},
+                    {icon:'🏠',title:'매물 관리',desc:'매물 수동 등록, 정보 편집 및 삭제'},
+                    {icon:'🔄',title:'아실 동기화',desc:'아실 엑셀 파일을 업로드하여 일괄 연동'},
+                    {icon:'📋',title:'상담 신청',desc:'고객 문의 확인, 메일/문자 답변 처리'},
+                    {icon:'🗺️',title:'지도 연동',desc:'홈페이지 오시는 길에 네이버 지도 표시'}
+                  ].map(f => (
+                    <div key={f.title} className="bg-gray-50 rounded-xl p-4 flex items-start gap-3 hover:shadow-sm transition-shadow border border-gray-100">
                       <span className="text-2xl">{f.icon}</span>
-                      <div><p className="font-bold text-gray-800 text-sm">{f.title}</p><p className="text-gray-500 text-xs mt-0.5">{f.desc}</p></div>
+                      <div>
+                        <p className="font-bold text-gray-800 text-sm">{f.title}</p>
+                        <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1930,11 +1949,22 @@ export default function AdminDashboard() {
 
               {/* 2. 관리자 로그인 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>관리자 로그인</h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-                  <p className="font-bold text-blue-800 mb-2">📍 접속 방법</p>
-                  <p className="text-blue-700 font-mono text-sm bg-blue-100 inline-block px-3 py-1 rounded">https://내홈페이지주소.com<strong>/admin</strong></p>
-                  <p className="text-blue-600 text-sm mt-3">⚠️ 비밀번호는 외부에 절대 공유하지 마세요.</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                  관리자 로그인 및 보안
+                </h3>
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+                  <div>
+                    <p className="font-bold text-blue-800 text-sm flex items-center gap-1.5">📍 접속 방법</p>
+                    <p className="text-blue-700 font-mono text-xs bg-blue-100 inline-block px-3 py-1.5 rounded-lg mt-1 select-all">
+                      https://leaders-garden-realestate.vercel.app/admin
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-xs leading-relaxed">
+                    - 브라우저 주소창 뒤에 <strong>`/admin`</strong>을 붙여 접속한 뒤 암호를 입력해 로그인합니다.<br />
+                    - 로그인 상태는 세션으로 유지되며, 브라우저를 종료하거나 로그아웃 시 해제됩니다.<br />
+                    - <strong className="text-red-650">주의:</strong> 관리자 비밀번호는 정보 보호를 위해 외부에 절대 노출되지 않도록 주기적으로 관리해 주세요.
+                  </p>
                 </div>
               </section>
 
@@ -1942,18 +1972,24 @@ export default function AdminDashboard() {
 
               {/* 3. 사이트 환경 설정 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>사이트 환경 설정 (핵심)</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                  사이트 환경 설정
+                </h3>
                 <div className="space-y-3">
                   {[
-                    {label:'기본 정보',desc:'상호명, 대표자, 연락처, 주소 입력 → 헤더·푸터에 자동 반영',color:'green'},
-                    {label:'이미지 업로드',desc:'명함 사진 업로드 → 대문 중간 소개 영역 | 배경 사진 → 상단 대형 배경',color:'blue'},
-                    {label:'슬로건 문구',desc:'[예시에서 선택] 드롭다운에서 템플릿 선택 후 개인 수정 가능',color:'purple'},
-                    {label:'영업시간',desc:'평일/토/일/공휴일 개별 입력 → 푸터에 자동 표시',color:'orange'},
-                    {label:'특별 공지사항',desc:'거다 퓨가·명절 등 긴급 공지 입력 → 주황색 강조 박스로 표시 | 비우면 자동 사라집',color:'red'},
+                    {label:'기본 정보 수정',desc:'상호명, 대표자 이름, 중개사 연락처, 등록번호, 주소 등을 입력하면 홈페이지 곳곳에 실시간으로 반영됩니다.',color:'emerald'},
+                    {label:'대표 이미지 & 명함',desc:'프로필 영역에 나타나는 대표 사진 및 명함을 업로드합니다. 용량이 큰 사진은 로딩에 시간이 걸릴 수 있으니 최적화된 용량의 파일을 추천합니다.',color:'sky'},
+                    {label:'영업시간 세팅',desc:'평일, 토요일, 일요일, 공휴일의 영업 시간을 상세 기입하여 고객들이 방문 시 착오가 없도록 합니다.',color:'amber'},
+                    {label:'특별 공지사항 (긴급 공지)',desc:'여름 휴가, 명절 휴무, 이벤트성 긴급 알림을 입력하면 홈페이지에 오렌지색 강조 배너로 즉시 노출됩니다. 텍스트를 완전히 비우면 배너가 자동으로 사라집니다.',color:'rose'},
+                    {label:'API 환경 변수',desc:'네이버 지도 API 연동 키(Client ID) 및 이메일 전송 키(EmailJS)를 직접 세팅하고 관리할 수 있습니다.',color:'purple'},
                   ].map(item => (
-                    <div key={item.label} className="flex items-start gap-3 bg-gray-50 rounded-xl px-4 py-3">
-                      <span className={`mt-0.5 w-2 h-2 rounded-full bg-${item.color}-400 flex-shrink-0 mt-2`}></span>
-                      <div><span className="font-bold text-gray-800 text-sm">{item.label}</span><span className="text-gray-500 text-sm"> — {item.desc}</span></div>
+                    <div key={item.label} className="flex items-start gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                      <span className={`w-2 h-2 rounded-full bg-${item.color}-500 mt-2 flex-shrink-0`}></span>
+                      <div>
+                        <p className="font-bold text-gray-800 text-sm">{item.label}</p>
+                        <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1961,45 +1997,119 @@ export default function AdminDashboard() {
 
               <hr className="border-gray-100" />
 
-              {/* 4. 매물 관리 */}
+              {/* 4. 매물 개별 관리 및 등록 기간 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">4</span>매물 관리</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                  매물 관리 및 등록 기간
+                </h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <p className="font-bold text-green-800 mb-2">✅ 매물 등록 시 필수 정보</p>
-                    <ul className="text-green-700 text-sm space-y-1">
-                      <li>• 제목, 주소, 건물 종류, 거래 방식</li>
-                      <li>• 가격, 면적, 방 수, 층수</li>
-                      <li>• 사진 (최대 10장)</li>
-                      <li>• 상세 설명</li>
+                  <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-2.5">
+                    <p className="font-bold text-green-800 text-sm">✅ 매물 수동 등록 요령</p>
+                    <ul className="text-green-700 text-xs space-y-1.5 leading-relaxed">
+                      <li>• <strong>기본 정보</strong>: 매물 제목, 주소, 매물 종류(아파트/상가 등), 거래 방식(매매/전세 등)</li>
+                      <li>• <strong>상세 조건</strong>: 가격 정보, 면적, 방/욕실 수, 해당 층/전체 층 등</li>
+                      <li>• <strong>사진 업로드</strong>: 매물당 최대 10장까지 고화질 사진 업로드 지원</li>
+                      <li>• <strong>상세 설명</strong>: 매물의 구조 및 특징을 줄바꿈하여 편하게 작성</li>
                     </ul>
                   </div>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                    <p className="font-bold text-yellow-800 mb-2">⭐ 추천 매물 체크시</p>
-                    <p className="text-yellow-700 text-sm">홈페이지 메인(대문)에 해당 매물이 노출됩니다.<br/>가장 조은 매물 6개 정도를 추체지로 설정하세요.</p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-2.5">
+                    <p className="font-bold text-amber-800 text-sm">⭐ 추천 매물 &amp; 등록 기간 관리</p>
+                    <p className="text-amber-700 text-xs leading-relaxed">
+                      - <strong>추천 매물 체크 시</strong>: 홈페이지 메인(대문) 화면 중간의 핵심 영역에 해당 매물이 즉시 배치됩니다. 시각적 균형을 위해 핵심 매물 6개 내외를 지정하시는 것이 가장 좋습니다.<br />
+                      - <strong>등록 기간(만료 알림)</strong>: 매물의 신뢰도를 높이기 위해 등록 후 일정 기간이 지나면 관리자 대시보드에 만료 경고가 표시되어 최신 정보 유지를 돕습니다.
+                    </p>
                   </div>
                 </div>
               </section>
 
               <hr className="border-gray-100" />
 
-              {/* 5. 자주 묻는 질문 */}
+              {/* 5. 아실 엑셀 매물 일괄 동기화 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">5</span>자주 묻는 질문 (FAQ)</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">5</span>
+                  아실 엑셀 매물 일괄 동기화 (대량 관리)
+                </h3>
+                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 space-y-3">
+                  <p className="font-bold text-orange-800 text-sm">🔄 대량의 매물을 클릭 한 번으로 최신화하는 방법</p>
+                  <ol className="list-decimal pl-4 text-xs text-orange-700 space-y-2 leading-relaxed">
+                    <li>
+                      <strong>아실 파일 다운로드</strong>: 아실 중개사 사이트에서 <code>등록리스트_XXXXXXXX.xls</code> 파일을 컴퓨터에 저장합니다.
+                    </li>
+                    <li>
+                      <strong>파일 업로드</strong>: 매물 관리 탭에서 [아실 엑셀 등록리스트 업로드] 버튼을 눌러 해당 파일을 선택합니다.
+                    </li>
+                    <li>
+                      <strong>동기화 비교 확인</strong>: 
+                      자동으로 DB와 아실 파일을 대조하여 <strong>신규 등록 예정 매물</strong>과 <strong>거래완료 처리 예정 매물</strong>(이전엔 있었으나 엑셀 파일에는 없는 매물) 리스트를 시각적으로 보여줍니다.
+                    </li>
+                    <li>
+                      <strong>동기화 실행</strong>: 이상이 없음을 확인한 뒤 [선택된 매물 일괄 동기화 실행]을 누르면, 신규 매물은 등록되고 완료된 매물은 즉시 '거래완료' 상태로 업데이트됩니다.
+                    </li>
+                  </ol>
+                  <p className="text-red-700 text-[11px] leading-relaxed">
+                    ※ <strong>참고</strong>: 엑셀 파일(.xlsx)로 수정한 뒤 저장한 파일은 구조가 깨져 실패할 수 있습니다. 반드시 아실에서 다운로드한 <strong>순수 .xls 파일</strong>을 그대로 업로드해 주세요.
+                  </p>
+                </div>
+              </section>
+
+              <hr className="border-gray-100" />
+
+              {/* 6. 상담 신청 및 실시간 알림 관리 */}
+              <section>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">6</span>
+                  상담 신청 및 알림(SMS/메일) 관리
+                </h3>
+                <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5 space-y-3">
+                  <p className="font-bold text-purple-800 text-sm">📋 고객 문의 처리 및 답변 알림 발송 순서</p>
+                  <ol className="list-decimal pl-4 text-xs text-purple-700 space-y-2 leading-relaxed">
+                    <li>
+                      <strong>상담 접수 알림</strong>: 홈페이지에서 고객이 상담을 신청하면 소장님 이메일로 알림 메일이 즉시 전송됩니다. (EmailJS API 사용)
+                    </li>
+                    <li>
+                      <strong>상담 리스트 확인</strong>: 관리자 대시보드의 [상담 리스트 관리] 탭에서 대기 중인 상담 항목을 클릭합니다.
+                    </li>
+                    <li>
+                      <strong>빠른 템플릿 답변 선택</strong>: 자주 사용하는 안내 문구(방문 예약, 유선 전화 안내 등)는 <code>자주 쓰는 답변 템플릿</code> 버튼을 클릭해 1초 만에 입력할 수 있습니다.
+                    </li>
+                    <li>
+                      <strong>상세 답변 &amp; 문자 알림 작성</strong>: 
+                      상세 답변은 홈페이지 조회용으로 세세하게 기입하고, 문자 내용은 알림용으로 간단히 작성합니다. (문자 미리보기 화면에 실시간 글자 수가 표시되며 90바이트 초과 시 긴 문자로 자동 전환됩니다.)
+                    </li>
+                    <li>
+                      <strong>답변 확정</strong>: <code>[답변 확정 (문자 전송)]</code>을 누르면 답변이 기록되며 고객 휴대폰으로 실시간 문자 메시지가 발송됩니다.
+                    </li>
+                    <li>
+                      <strong>거래 성공 처리</strong>: 계약이 완결된 경우 <code>[거래 성공 (계약 완료) 처리]</code> 버튼을 누르면 해당 내역이 대시보드 통계 리포트에 반영됩니다.
+                    </li>
+                  </ol>
+                </div>
+              </section>
+
+              <hr className="border-gray-100" />
+
+              {/* 7. 자주 묻는 질문 */}
+              <section>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">7</span>
+                  자주 묻는 질문 (FAQ)
+                </h3>
                 <div className="space-y-3">
                   {[
-                    {q:'이미지를 올렸는데 홈페이지에 바로 안 보여요.',a:'[환경 설정 저장하기] 버튼을 눌렀는지 확인하세요. 저장 후 홈페이지를 새로고침(F5)하면 반영됩니다.'},
-                    {q:'특별 공지사항을 지우고 싶어요.',a:'특별 공지사항 텍스트박스 내용을 모두 지우고 저장하면 자동으로 사라집니다.'},
-                    {q:'슬로건에 줄바꿈을 하고 싶어요.',a:'텍스트박스 안에서 Enter 키를 누르면 홈페이지에도 그대로 줄바꿈이 적용됩니다.'},
-                    {q:'상담 신청 이메일이 안 와요.',a:'[사이트 환경 설정] → [API 환경 변수 세팅]에서 EmailJS 키 3개가 올바르게 입력되어 있는지 확인하세요.'},
-                    {q:'매물 이미지가 10장을 넘어요.',a:'현재 최대 10장까지 지원합니다. 가장 잘 나온 사진 위주로 선별해서 올려주세요.'},
+                    {q:'이미지/내용을 수정했는데 실시간 화면에 바로 안 나와요.',a:'관리자 페이지 하단의 [환경 설정 저장하기] 혹은 매물 수정 시 [수정 저장하기] 버튼을 정상적으로 클릭했는지 확인하십시오. 저장 완료 팝업이 뜨고 나서 홈페이지를 새로고침(F5)하면 즉각 반영됩니다.'},
+                    {q:'특별 공지사항 배너를 화면에서 내리고 싶어요.',a:'공지사항 입력 란의 내용을 백스페이스나 Delete 키로 완전히 비운 뒤 [환경 설정 저장하기]를 클릭하면, 메인 화면의 주황색 공지사항 배너가 자동으로 흔적 없이 사라집니다.'},
+                    {q:'네이버 지도가 정상적으로 나오지 않고 회색 화면이나 오류가 표시됩니다.',a:'[API 환경 변수 세팅]에 등록된 Client ID가 네이버 클라우드 플랫폼의 "Maps > Application > Readers-Garden"의 Client ID와 완벽히 일치하는지 확인해 주세요. 특히 등록 환경에 실제 배포 주소(https://leaders-garden-realestate.vercel.app)가 서비스 URL로 등록되어 있어야 합니다. (입력 란 오른쪽의 [설정 가이드 보기]를 참고하세요.)'},
+                    {q:'상담 메일 알림이 정상적으로 수신되지 않습니다.',a:'EmailJS 관련 3가지 API 키가 관리자 화면에 오타 없이 저장되어 있는지 체크하십시오. [진단 및 모니터링] 탭으로 이동하시면 실시간 이메일 전송 테스트 기능을 제공하므로 직접 발송 성공 여부 및 에러 코드를 확인하실 수 있습니다.'},
+                    {q:'매물 사진은 최대 몇 장까지 등록이 가능한가요?',a:'현재 매물당 최대 10장까지 등록을 지원합니다. 불필요하게 지나치게 고해상도인 원본 사진(한 장당 10MB 이상)은 홈페이지 로딩을 느리게 만들 수 있으므로, 웹에 맞게 크기가 조절된 대표 이미지 위주로 등록해 주시는 것이 로딩 속도 관리에 유리합니다.'},
                   ].map(({q,a}) => (
-                    <details key={q} className="bg-gray-50 rounded-xl overflow-hidden group">
-                      <summary className="px-5 py-4 font-bold text-gray-800 cursor-pointer flex items-center justify-between list-none">
+                    <details key={q} className="bg-gray-50 rounded-xl overflow-hidden group border border-gray-150">
+                      <summary className="px-5 py-4 font-bold text-gray-800 cursor-pointer flex items-center justify-between list-none text-sm select-none">
                         <span>Q. {q}</span>
                         <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
                       </summary>
-                      <div className="px-5 pb-4 text-gray-600 text-sm border-t border-gray-200 pt-3">{a}</div>
+                      <div className="px-5 pb-4 text-gray-600 text-xs border-t border-gray-200 pt-3 leading-relaxed">{a}</div>
                     </details>
                   ))}
                 </div>
@@ -2007,15 +2117,18 @@ export default function AdminDashboard() {
 
               <hr className="border-gray-100" />
 
-              {/* 6. 연락처 */}
+              {/* 8. 연락처 */}
               <section>
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">6</span>도움이 필요할 때</h3>
-                <div className="bg-teal-50 border border-teal-200 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
-                  <div className="bg-teal-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl flex-shrink-0">📱</div>
-                  <div>
-                    <p className="font-bold text-teal-800 text-lg">홈피지기 · 톱니바꿈</p>
-                    <p className="text-teal-700 text-xl font-mono font-bold mt-1">010-5036-0846</p>
-                    <p className="text-teal-600 text-sm mt-1">팅 카카오톡 문의 가능 | 평일 10:00 ~ 18:00</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">8</span>
+                  도움이 필요할 때
+                </h3>
+                <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
+                  <div className="bg-teal-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl flex-shrink-0 shadow-md">🔧</div>
+                  <div className="text-center md:text-left">
+                    <p className="font-bold text-teal-800 text-lg">시스템 기술 지원 및 홈페이지 유지보수</p>
+                    <p className="text-teal-700 text-2xl font-mono font-bold mt-1 tracking-wider">010-5864-0846</p>
+                    <p className="text-teal-600 text-xs mt-1.5">이메일/문자/카카오톡 문의 가능 | 평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)</p>
                   </div>
                 </div>
               </section>
