@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AdminStatistics from '../components/AdminStatistics';
 import { supabase } from '../supabaseClient';
-import { Lock, CheckCircle, Handshake, BarChart2, List, Home, Trash2, Settings, BookOpen } from 'lucide-react';
+import { Lock, CheckCircle, Handshake, BarChart2, List, Home, Trash2, Settings, BookOpen, Newspaper } from 'lucide-react';
 import { getComplexName, getPropertyImage, checkRegistrationExpiry } from '../utils/imageHelper';
 
 const QUICK_REPLIES = [
@@ -97,6 +97,11 @@ export default function AdminDashboard() {
   const [showMapGuide, setShowMapGuide] = useState(false);
   const [showEmailGuide, setShowEmailGuide] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // 부동산 뉴스 관련 State
+  const [newsList, setNewsList] = useState([]);
+  const [editingNews, setEditingNews] = useState(null); // null 이면 닫힘, {} 이면 등록, {id, ...} 이면 수정
+  const [newsForm, setNewsForm] = useState({ title: '', source_url: '', image_url: '', content: '' });
 
   const handleAsilImport = (e) => {
     const file = e.target.files[0];
@@ -523,6 +528,95 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchNews = async () => {
+    try {
+      if (!supabase) return;
+      const { data, error } = await supabase
+        .from('ai_news')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setNewsList(data || []);
+    } catch (error) {
+      console.error("뉴스 불러오기 오류:", error);
+    }
+  };
+
+  const handleCreateOrUpdateNews = async (e) => {
+    e.preventDefault();
+    if (!newsForm.title.trim()) return alert("제목을 입력해주세요.");
+    if (!newsForm.source_url.trim()) return alert("출처 URL을 입력해주세요.");
+
+    try {
+      if (!supabase) return alert("데이터베이스 연동이 필요합니다.");
+
+      const newsData = {
+        title: newsForm.title.trim(),
+        source_url: newsForm.source_url.trim(),
+        image_url: newsForm.image_url.trim() || null,
+        content: newsForm.content.trim() || null,
+        description: newsForm.content.trim() ? (newsForm.content.trim().substring(0, 150) + "...") : null
+      };
+
+      if (editingNews && editingNews.id) {
+        // Update
+        const { error } = await supabase
+          .from('ai_news')
+          .update(newsData)
+          .eq('id', editingNews.id);
+        if (error) throw error;
+        alert("뉴스 기사가 수정되었습니다.");
+      } else {
+        // Insert
+        const { error } = await supabase
+          .from('ai_news')
+          .insert([newsData]);
+        if (error) throw error;
+        alert("뉴스 기사가 등록되었습니다.");
+      }
+
+      setEditingNews(null);
+      fetchNews();
+    } catch (error) {
+      console.error(error);
+      alert("뉴스 저장 중 오류가 발생했습니다: " + error.message);
+    }
+  };
+
+  const handleDeleteNews = async (id) => {
+    if (!window.confirm("정말 이 뉴스 기사를 삭제하시겠습니까?")) return;
+    try {
+      if (!supabase) return;
+      const { error } = await supabase.from('ai_news').delete().eq('id', id);
+      if (error) throw error;
+      alert("뉴스 기사가 삭제되었습니다.");
+      fetchNews();
+    } catch (error) {
+      console.error(error);
+      alert("뉴스 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleEditNewsClick = (item) => {
+    setEditingNews(item);
+    setNewsForm({
+      title: item.title || '',
+      source_url: item.source_url || '',
+      image_url: item.image_url || '',
+      content: item.content || ''
+    });
+  };
+
+  const handleNewNewsClick = () => {
+    setEditingNews({});
+    setNewsForm({
+      title: '',
+      source_url: '',
+      image_url: '',
+      content: ''
+    });
+  };
+
   const handleCreateComplex = async (e) => {
     e.preventDefault();
     if (!newComplexName.trim()) return alert("단지명을 입력해주세요.");
@@ -595,6 +689,7 @@ export default function AdminDashboard() {
       fetchCommonCodes();
       fetchSiteSettings();
       fetchComplexes();
+      fetchNews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, filterType]);
@@ -1053,6 +1148,13 @@ export default function AdminDashboard() {
               >
                 <BookOpen size={18} />
                 운영자 매뉴얼
+              </button>
+              <button 
+                onClick={() => setActiveTab('news')}
+                className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition ${activeTab === 'news' ? 'bg-red-650 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+              >
+                <Newspaper size={18} />
+                부동산 뉴스 관리
               </button>
             </div>
           </div>
@@ -2297,7 +2399,116 @@ export default function AdminDashboard() {
             ))
           )}
         </div>
-        )}
+        ) : activeTab === 'news' ? (
+          <div className="space-y-6">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Newspaper className="text-brand-green" size={26} />
+                    부동산 뉴스 브리핑 관리
+                  </h2>
+                  <p className="text-gray-500 text-xs mt-1">
+                    홈페이지 메인 화면의 "오늘의 부동산 브리핑" 뉴스 카드를 관리합니다. 크롤러가 매일 오전 8시에 수집한 뉴스 외에 관리자가 직접 추가하거나 수정/삭제할 수 있습니다.
+                  </p>
+                </div>
+                <button
+                  onClick={handleNewNewsClick}
+                  className="bg-brand-orange text-white px-5 py-2.5 rounded-xl font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-sm text-sm shrink-0 cursor-pointer"
+                >
+                  + 새 부동산 뉴스 등록
+                </button>
+              </div>
+
+              {newsList.length > 0 ? (
+                <div className="overflow-x-auto rounded-xl border border-gray-200">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold">
+                        <th className="px-6 py-4 w-44">등록일</th>
+                        <th className="px-6 py-4">뉴스기사 제목 / 대표이미지</th>
+                        <th className="px-6 py-4 w-48">대표 출처</th>
+                        <th className="px-6 py-4 w-24 text-center">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {newsList.map(news => (
+                        <tr key={news.id} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="px-6 py-4 text-gray-500 whitespace-nowrap font-medium">
+                            {new Date(news.created_at).toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: false
+                            })}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {news.image_url ? (
+                                <img
+                                  src={news.image_url}
+                                  alt="대표 이미지"
+                                  className="w-12 h-12 object-cover rounded-lg border border-gray-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 border border-gray-200">
+                                  <Newspaper size={18} />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-bold text-gray-850 text-sm line-clamp-1 mb-1">{news.title}</p>
+                                <p className="text-gray-500 line-clamp-1 text-[11px] font-normal leading-relaxed">{news.description || news.content || ''}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <a
+                              href={news.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-650 hover:underline break-all font-semibold max-w-[180px] block truncate"
+                              title={news.source_url}
+                            >
+                              {news.source_url}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => handleEditNewsClick(news)}
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
+                                title="수정"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteNews(news.id)}
+                                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer"
+                                title="삭제"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
+                  <p className="text-gray-500 font-bold text-sm">등록된 뉴스 브리핑 기사가 없습니다.</p>
+                  <p className="text-gray-400 text-xs mt-1">상단의 새 뉴스 등록 버튼을 눌러 기사를 추가해보세요.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
       </main>
       <Footer />
 
@@ -2433,6 +2644,75 @@ export default function AdminDashboard() {
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">수정 저장하기</button>
                 <button type="button" onClick={() => setEditingProperty(null)} className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 transition">취소</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===== 부동산 뉴스 등록/수정 모달 ===== */}
+      {editingNews && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditingNews(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-brand-green px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <h2 className="text-white font-bold text-xl">
+                {editingNews.id ? '✏️ 부동산 뉴스 수정' : '📰 새 부동산 뉴스 등록'}
+              </h2>
+              <button onClick={() => setEditingNews(null)} className="text-white text-2xl leading-none cursor-pointer">&times;</button>
+            </div>
+            <form onSubmit={handleCreateOrUpdateNews} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">제목</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="뉴스 기사 제목을 입력하세요"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none text-sm"
+                  value={newsForm.title}
+                  onChange={e => setNewsForm({...newsForm, title: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">출처 URL</label>
+                <input
+                  required
+                  type="url"
+                  placeholder="https://news.naver.com/..."
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none text-sm font-mono"
+                  value={newsForm.source_url}
+                  onChange={e => setNewsForm({...newsForm, source_url: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">대표 이미지 URL (선택)</label>
+                <input
+                  type="url"
+                  placeholder="이미지 주소를 입력하세요 (비워두면 기본 이미지로 세팅됨)"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none text-sm font-mono"
+                  value={newsForm.image_url}
+                  onChange={e => setNewsForm({...newsForm, image_url: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">AI 요약 내용 (마크다운 포맷)</label>
+                <textarea
+                  rows="6"
+                  placeholder={`📌[1] **핵심키워드**: 한국어 상세 설명...\n📌[2] **핵심키워드**: 한국어 상세 설명...\n📌[3] **핵심키워드**: 한국어 상세 설명...`}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none text-xs font-mono leading-relaxed resize-none"
+                  value={newsForm.content}
+                  onChange={e => setNewsForm({...newsForm, content: e.target.value})}
+                />
+                <p className="text-gray-400 text-[10px] mt-1">
+                  * 📌[번호] **키워드**: 설명 형식에 맞춰 입력하시면 화면에 예쁘게 포맷팅되어 출력됩니다.
+                </p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="flex-1 bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-green-800 transition cursor-pointer text-sm">
+                  {editingNews.id ? '수정 저장하기' : '등록하기'}
+                </button>
+                <button type="button" onClick={() => setEditingNews(null)} className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 transition cursor-pointer text-sm">
+                  취소
+                </button>
               </div>
             </form>
           </div>

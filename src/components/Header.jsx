@@ -54,6 +54,21 @@ export default function Header() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleGoToNews = (e) => {
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      const element = document.getElementById('news');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      e.preventDefault();
+      sessionStorage.setItem('scroll_to_news', 'true');
+      window.location.href = '/';
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -66,6 +81,7 @@ export default function Header() {
         
         <nav className="hidden md:flex gap-6 text-gray-600 font-medium">
           <Link to="/#properties" onClick={handleGoToSearch} className="hover:text-brand-orange transition">매물검색</Link>
+          <a href="/#news" onClick={handleGoToNews} className="hover:text-brand-orange transition">부동산 브리핑</a>
           <a href="https://031-858-4955.asil.kr/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition flex items-center gap-1">
             🏘️ 전체매물
           </a>
@@ -143,6 +159,14 @@ export default function Header() {
                 <span>🔍 매물검색</span>
                 <span className="text-gray-300 text-xs">➔</span>
               </Link>
+              <a 
+                href="/#news" 
+                onClick={handleGoToNews}
+                className="py-2.5 px-4 rounded-xl hover:bg-gray-50 hover:text-brand-orange transition flex items-center justify-between"
+              >
+                <span>📰 부동산 브리핑</span>
+                <span className="text-gray-300 text-xs">➔</span>
+              </a>
               <a 
                 href="https://031-858-4955.asil.kr/" 
                 target="_blank" 

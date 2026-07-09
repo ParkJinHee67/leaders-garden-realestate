@@ -21,6 +21,50 @@ export default function Home() {
   const [selectedExpiryFilter, setSelectedExpiryFilter] = useState(() => sessionStorage.getItem('filter_expiry') || 'ALL');
   const [searchKeyword, setSearchKeyword] = useState(() => sessionStorage.getItem('filter_keyword') || '');
 
+  // 부동산 뉴스 관련 State
+  const [newsList, setNewsList] = useState([]);
+  const [selectedNewsTab, setSelectedNewsTab] = useState('ALL');
+  const [newsLimit, setNewsLimit] = useState(4);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const filteredNews = newsList.filter(news => {
+    if (selectedNewsTab === 'ALL') return true;
+    const titleAndDesc = ((news.title || '') + ' ' + (news.content || '') + ' ' + (news.description || '')).toLowerCase();
+    
+    if (selectedNewsTab === 'OKJEONG_YANGJU') {
+      return titleAndDesc.includes('옥정') || titleAndDesc.includes('양주') || titleAndDesc.includes('회천');
+    }
+    if (selectedNewsTab === 'GTX') {
+      return titleAndDesc.includes('gtx');
+    }
+    if (selectedNewsTab === 'SUBSCRIPTION') {
+      return titleAndDesc.includes('청약') || titleAndDesc.includes('분양') || titleAndDesc.includes('공급');
+    }
+    if (selectedNewsTab === 'REGULATION') {
+      return titleAndDesc.includes('규제') || titleAndDesc.includes('대책') || titleAndDesc.includes('법') || titleAndDesc.includes('세금') || titleAndDesc.includes('금리');
+    }
+    return true;
+  });
+
+  const parseNewsContent = (content) => {
+    if (!content) return [];
+    const lines = content.split('\n');
+    return lines.map(line => {
+      const cleanLine = line.replace(/^📌\[\d+\]\s*/, '').trim();
+      const match = cleanLine.match(/^\*\*(.*?)\*\*:(.*)$/) || cleanLine.match(/^\*\*(.*?)\*\*(.*)$/);
+      if (match) {
+        return {
+          keyword: match[1].trim(),
+          text: match[2].trim().replace(/^:\s*/, '')
+        };
+      }
+      return {
+        keyword: '',
+        text: cleanLine
+      };
+    }).filter(item => item.text || item.keyword);
+  };
+
   useEffect(() => {
     sessionStorage.setItem('filter_expiry', selectedExpiryFilter);
   }, [selectedExpiryFilter]);
@@ -101,6 +145,23 @@ export default function Home() {
     fetchProperties();
   }, []);
 
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        if (!supabase) return;
+        const { data, error } = await supabase
+          .from('ai_news')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setNewsList(data || []);
+      } catch (error) {
+        console.error("뉴스 불러오기 오류:", error);
+      }
+    };
+    fetchNews();
+  }, []);
+
   // 헤더 링크 클릭 시 필터 초기화 이벤트 리스너
   useEffect(() => {
     const handleReset = () => {
@@ -129,6 +190,21 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [propertiesList]);
+
+  // 타 페이지에서 뉴스 브리핑 클릭하여 유입 시 스크롤 처리
+  useEffect(() => {
+    const scrollToNews = sessionStorage.getItem('scroll_to_news');
+    if (scrollToNews === 'true' && newsList.length > 0) {
+      sessionStorage.removeItem('scroll_to_news');
+      const timer = setTimeout(() => {
+        const element = document.getElementById('news');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [newsList]);
 
   // 스크롤 위치 감지 및 저장
   useEffect(() => {
@@ -238,6 +314,160 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* 오늘의 부동산 브리핑 Section */}
+        <section id="news" className="py-20 bg-gray-50 border-t border-gray-205">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="text-center mb-10">
+              <span className="bg-brand-orange/10 text-brand-orange px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm inline-block mb-3">📰 AI Daily Briefing</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">오늘의 부동산 브리핑</h2>
+              <p className="text-gray-500 text-sm md:text-base max-w-xl mx-auto">
+                GTX-C, 옥정·양주신도시, 청약 일정 및 부동산 규제 등 주요 뉴스를 AI가 매일 오전 8시에 분석하고 요약해 드립니다.
+              </p>
+            </div>
+
+            {/* 필터 탭 */}
+            <div className="flex flex-wrap justify-center gap-2 mb-10">
+              {[
+                { id: 'ALL', label: '전체' },
+                { id: 'GTX', label: '🚀 GTX-C' },
+                { id: 'OKJEONG_YANGJU', label: '🏡 옥정·양주' },
+                { id: 'SUBSCRIPTION', label: '📋 청약·분양' },
+                { id: 'REGULATION', label: '⚖️ 규제·대책' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setSelectedNewsTab(tab.id);
+                    setNewsLimit(4); // 필터 변경 시 페이징 초기화
+                  }}
+                  className={`px-5 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm cursor-pointer ${
+                    selectedNewsTab === tab.id
+                      ? 'bg-brand-green text-white scale-105'
+                      : 'bg-white text-gray-650 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 뉴스 그리드 (데스크톱 4열, 태블릿 2열, 모바일 1열) */}
+            {filteredNews.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredNews.slice(0, newsLimit).map(news => {
+                  const parsedPoints = parseNewsContent(news.content || news.description);
+                  return (
+                    <div
+                      key={news.id}
+                      onClick={() => window.open(news.source_url, '_blank')}
+                      className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-150 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col group h-full relative"
+                    >
+                      {/* 썸네일 이미지 */}
+                      <div className="relative h-44 w-full bg-gray-100 overflow-hidden shrink-0">
+                        {news.image_url ? (
+                          <img
+                            src={news.image_url}
+                            alt={news.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                        ) : (
+                          // Fallback elegant real estate SVG
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 text-brand-green">
+                            <svg className="w-16 h-16 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H3a.75.75 0 01-.75-.75V3.75A.75.75 0 013 3zm13.5 9h5.25m-5.25 3h5.25M16.5 9h5.25M21 3v18" />
+                            </svg>
+                          </div>
+                        )}
+                        <span className="absolute top-3 left-3 bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                          부동산 브리핑
+                        </span>
+                      </div>
+
+                      {/* 카드 바디 */}
+                      <div className="p-5 flex flex-col flex-grow">
+                        {/* 등록일 및 공유 버튼 */}
+                        <div className="flex items-center justify-between text-gray-400 text-[11px] mb-3 font-semibold shrink-0">
+                          <span className="flex items-center gap-1">
+                            📅 {new Date(news.created_at).toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: false
+                            })}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // 카드 클릭 원문 이동 방지
+                              navigator.clipboard.writeText(news.source_url);
+                              setCopiedId(news.id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition cursor-pointer"
+                            title="기사 링크 복사"
+                          >
+                            {copiedId === news.id ? (
+                              <span className="text-[10px] text-brand-green font-bold flex items-center gap-0.5">✓ 복사됨</span>
+                            ) : (
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.636-2.318a3 3 0 11.758 1.517l-4.636 2.318a3 3 0 11-.758-1.517z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.258l4.636 2.318a3 3 0 10.758-1.517l-4.636-2.318a3 3 0 10-.758 1.517z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* 뉴스 제목 */}
+                        <h3 className="font-extrabold text-sm text-gray-900 mb-4 line-clamp-2 group-hover:text-brand-orange transition-colors duration-200">
+                          {news.title}
+                        </h3>
+
+                        {/* AI 요약 리스트 */}
+                        <ul className="space-y-3 text-xs text-gray-600 flex-grow">
+                          {parsedPoints.map((point, idx) => (
+                            <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-[10px] font-extrabold mt-0.5">
+                                {idx + 1}
+                              </span>
+                              <div>
+                                {point.keyword && (
+                                  <strong className="text-gray-800 font-extrabold mr-1 bg-brand-green/5 px-1 py-0.5 rounded text-[11px]">
+                                    {point.keyword}
+                                  </strong>
+                                )}
+                                <span className="text-gray-650">{point.text}</span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-gray-500 bg-white rounded-3xl border border-gray-200 shadow-sm max-w-xl mx-auto">
+                해당 필터 키워드의 최근 뉴스 브리핑이 없습니다.
+              </div>
+            )}
+
+            {/* 더 보기 버튼 */}
+            {filteredNews.length > newsLimit && (
+              <div className="text-center mt-12">
+                <button
+                  onClick={() => setNewsLimit(prev => prev + 4)}
+                  className="bg-white border border-gray-300 text-gray-700 hover:text-brand-green hover:border-brand-green px-8 py-3.5 rounded-full font-bold text-xs md:text-sm shadow-sm transition-all duration-300 hover:scale-105 cursor-pointer"
+                >
+                  브리핑 더 보기 ➔
+                </button>
+              </div>
+            )}
           </div>
         </section>
 

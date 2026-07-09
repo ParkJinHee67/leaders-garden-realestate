@@ -249,6 +249,7 @@ https://내홈페이지주소.com/consult/view
 4. setup_agencies_extended.sql (사이트 설정 컬럼)
 5. setup_agencies_hours.sql    (영업시간 컬럼)
 6. setup_slogan_codes.sql      (슬로건 예시 데이터)
+7. setup_ai_news.sql           (부동산 뉴스 브리핑 테이블 및 권한 생성)
 ```
 
 ### Step 2. agencies 테이블에 중개소 기본 정보 입력
@@ -308,6 +309,19 @@ VITE_ADMIN_PASSWORD=[관리자 비밀번호]
    * **`SOLAPI_API_SECRET`**: 솔라피 API Secret
    * **`SOLAPI_SENDER_NUMBER`**: 솔라피에 사전 승인 등록된 발신번호 (하이픈 없이 숫자만 입력)
    * ⚠️ **보안 경고**: 이 키값들은 고객 브라우저 소스코드 검사를 통해 외부로 노출될 위험이 크므로, 로컬 컴퓨터의 `.env` 파일에 절대 기록하지 마십시오. 반드시 Supabase Secrets 영역에만 등록해 관리하십시오.
+
+### Step 8. 일일 부동산 뉴스 자동 크롤러 연동 설정 (GitHub Actions)
+
+매일 오전 8시에 자동으로 부동산 뉴스를 수집하여 요약 노출하기 위해, GitHub 저장소에 환경 변수(Secrets)를 세팅하고 작동 환경을 맞춥니다.
+
+1. **대상 GitHub 저장소** ➡️ **Settings** ➡️ **Secrets and variables** ➡️ **Actions** 메뉴로 이동합니다.
+2. **[New repository secret]** 버튼을 클릭하여 아래 3개의 환경 변수값을 차례대로 등록합니다:
+   * **`SUPABASE_URL`**: Supabase 프로젝트 API URL (프로젝트 Settings ➡️ API 페이지에서 확인 가능)
+   * **`SUPABASE_KEY`**: Supabase 프로젝트 API Key (보안상 anon 키보다는 **`service_role`** 키 입력 권장)
+   * **`GEMINI_API_KEY`**: 구글 AI Gemini API 키 (비밀키 발급 후 등록)
+3. 등록 완료 후 매일 오전 8시(한국 시간)에 자동으로 `.github/workflows/daily_news.yml` 워크플로우에 의해 수집 에이전트가 실행됩니다.
+4. 필요시 GitHub Actions 탭에서 **Daily AI News Auto Publisher** 워크플로우를 선택하고 **[Run workflow]**를 눌러 수동으로 즉시 기사를 수집할 수도 있습니다.
+5. 관리자 페이지의 **[부동산 뉴스 관리]** 탭에서 크롤러가 수집한 뉴스 기사를 직접 확인, 수정, 삭제하거나 새 기사를 직접 추가 등록할 수 있습니다.
 
 ---
 
