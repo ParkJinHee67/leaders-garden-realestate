@@ -2237,6 +2237,116 @@ export default function AdminDashboard() {
 
             </div>
           </div>
+        ) : activeTab === 'news' ? (
+          <div className="space-y-6">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Newspaper className="text-brand-green" size={26} />
+                    부동산 뉴스 브리핑 관리
+                  </h2>
+                  <p className="text-gray-500 text-xs mt-1">
+                    홈페이지 메인 화면의 "오늘의 부동산 브리핑" 뉴스 카드를 관리합니다. 크롤러가 매일 오전 8시에 수집한 뉴스 외에 관리자가 직접 추가하거나 수정/삭제할 수 있습니다.
+                  </p>
+                </div>
+                <button
+                  onClick={handleNewNewsClick}
+                  className="bg-brand-orange text-white px-5 py-2.5 rounded-xl font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-sm text-sm shrink-0 cursor-pointer"
+                >
+                  + 새 부동산 뉴스 등록
+                </button>
+              </div>
+
+              {newsList.length > 0 ? (
+                <div className="overflow-x-auto rounded-xl border border-gray-200">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold">
+                        <th className="px-6 py-4 w-44">등록일</th>
+                        <th className="px-6 py-4">뉴스기사 제목 / 대표이미지</th>
+                        <th className="px-6 py-4 w-48">대표 출처</th>
+                        <th className="px-6 py-4 w-24 text-center">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {newsList.map(news => (
+                        <tr key={news.id} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="px-6 py-4 text-gray-500 whitespace-nowrap font-medium">
+                            {new Date(news.created_at).toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                              hour12: false
+                            })}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {news.image_url ? (
+                                <img
+                                  src={news.image_url}
+                                  alt="대표 이미지"
+                                  className="w-12 h-12 object-cover rounded-lg border border-gray-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 border border-gray-200">
+                                  <Newspaper size={18} />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-bold text-gray-850 text-sm line-clamp-1 mb-1">{news.title}</p>
+                                <p className="text-gray-500 line-clamp-1 text-[11px] font-normal leading-relaxed">{news.description || news.content || ''}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <a
+                              href={news.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-650 hover:underline break-all font-semibold max-w-[180px] block truncate"
+                              title={news.source_url}
+                            >
+                              {news.source_url}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => handleEditNewsClick(news)}
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
+                                title="수정"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteNews(news.id)}
+                                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer"
+                                title="삭제"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
+                  <p className="text-gray-500 font-bold text-sm">등록된 뉴스 브리핑 기사가 없습니다.</p>
+                  <p className="text-gray-400 text-xs mt-1">상단의 새 뉴스 등록 버튼을 눌러 기사를 추가해보세요.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
         ) : (
         <div className="space-y-6">
           {loading ? (
@@ -2399,116 +2509,8 @@ export default function AdminDashboard() {
             ))
           )}
         </div>
-        ) : activeTab === 'news' ? (
-          <div className="space-y-6">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Newspaper className="text-brand-green" size={26} />
-                    부동산 뉴스 브리핑 관리
-                  </h2>
-                  <p className="text-gray-500 text-xs mt-1">
-                    홈페이지 메인 화면의 "오늘의 부동산 브리핑" 뉴스 카드를 관리합니다. 크롤러가 매일 오전 8시에 수집한 뉴스 외에 관리자가 직접 추가하거나 수정/삭제할 수 있습니다.
-                  </p>
-                </div>
-                <button
-                  onClick={handleNewNewsClick}
-                  className="bg-brand-orange text-white px-5 py-2.5 rounded-xl font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-sm text-sm shrink-0 cursor-pointer"
-                >
-                  + 새 부동산 뉴스 등록
-                </button>
-              </div>
 
-              {newsList.length > 0 ? (
-                <div className="overflow-x-auto rounded-xl border border-gray-200">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold">
-                        <th className="px-6 py-4 w-44">등록일</th>
-                        <th className="px-6 py-4">뉴스기사 제목 / 대표이미지</th>
-                        <th className="px-6 py-4 w-48">대표 출처</th>
-                        <th className="px-6 py-4 w-24 text-center">관리</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {newsList.map(news => (
-                        <tr key={news.id} className="hover:bg-gray-50/70 transition-colors">
-                          <td className="px-6 py-4 text-gray-500 whitespace-nowrap font-medium">
-                            {new Date(news.created_at).toLocaleString('ko-KR', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                              hour12: false
-                            })}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              {news.image_url ? (
-                                <img
-                                  src={news.image_url}
-                                  alt="대표 이미지"
-                                  className="w-12 h-12 object-cover rounded-lg border border-gray-200 shrink-0"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 border border-gray-200">
-                                  <Newspaper size={18} />
-                                </div>
-                              )}
-                              <div>
-                                <p className="font-bold text-gray-850 text-sm line-clamp-1 mb-1">{news.title}</p>
-                                <p className="text-gray-500 line-clamp-1 text-[11px] font-normal leading-relaxed">{news.description || news.content || ''}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <a
-                              href={news.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-650 hover:underline break-all font-semibold max-w-[180px] block truncate"
-                              title={news.source_url}
-                            >
-                              {news.source_url}
-                            </a>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => handleEditNewsClick(news)}
-                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
-                                title="수정"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteNews(news.id)}
-                                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer"
-                                title="삭제"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-gray-500 font-bold text-sm">등록된 뉴스 브리핑 기사가 없습니다.</p>
-                  <p className="text-gray-400 text-xs mt-1">상단의 새 뉴스 등록 버튼을 눌러 기사를 추가해보세요.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
+        )}
       </main>
       <Footer />
 
