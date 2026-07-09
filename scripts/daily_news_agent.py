@@ -24,7 +24,7 @@ def resolve_google_news_link(url):
 
 def fetch_latest_news_feed():
     """Fetch real estate news articles from Google News RSS feed."""
-    query = '"GTX-C" OR "옥정신도시" OR "양주신도시" OR "청약" OR "부동산 규제"'
+    query = '("GTX-C" OR "옥정신도시" OR "양주신도시" OR "부동산 규제") OR ((청약 OR 분양) AND (아파트 OR 주택 OR 단지 OR 특별공급 OR 신도시 OR 부동산) -주식 -공모 -상장 -IPO -증권 -증시 -ADR -채권 -펀드)'
     encoded_query = urllib.parse.quote(query)
     rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ko&gl=KR&ceid=KR:ko"
     try:
@@ -221,6 +221,12 @@ def main():
         
         clean_title = re.sub(r'\s+-\s+[^(-]+$', '', title).strip()
         
+        # Double check title to exclude stock/corporate finance news
+        exclude_keywords = ["주식", "공모", "상장", "IPO", "증시", "증권", "ADR", "채권", "펀드", "코스피", "코스닥", "유상증자", "반도체", "하이닉스", "삼성전자", "k-hyni", "khyni"]
+        if any(kw in clean_title.lower() for kw in exclude_keywords):
+            print(f"Skip (contains stock/corporate keyword): {clean_title}")
+            continue
+            
         if is_already_registered(resolved_url):
             print(f"Skip (already registered): {clean_title}")
             continue
