@@ -8,11 +8,25 @@ import requests
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash") # Using stable gemini-1.5-flash
+
+def resolve_google_news_link(url):
+    """Resolve Google News redirection link to the actual original source URL."""
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        res = requests.get(url, timeout=10, headers=headers, allow_redirects=True)
+        return res.url
+    except Exception as e:
+        print(f"Failed to resolve redirection for {url}: {e}")
+        return url
 
 def fetch_latest_news_feed():
-    """Fetch AI news articles from Google News RSS feed."""
-    rss_url = "https://news.google.com/rss/search?q=Artificial+Intelligence&hl=en-US&gl=US&ceid=US:en"
+    """Fetch real estate news articles from Google News RSS feed."""
+    query = '"GTX-C" OR "옥정신도시" OR "양주신도시" OR "청약" OR "부동산 규제"'
+    encoded_query = urllib.parse.quote(query)
+    rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=ko&gl=KR&ceid=KR:ko"
     try:
         response = requests.get(rss_url, timeout=15)
         if response.status_code != 200:
@@ -21,12 +35,11 @@ def fetch_latest_news_feed():
         # Parse XML RSS Feed
         root = ET.fromstring(response.content)
         items = []
-        for item in root.findall(".//item")[:10]: # Check top 10 articles
+        for item in root.findall(".//item")[:20]: # Check top 20 articles
             title = item.find("title").text
             link = item.find("link").text
             pub_date = item.find("pubDate").text
             
-            # Resolve Google News redirection if possible, or just use the link
             items.append({
                 "title": title,
                 "link": link,
@@ -66,13 +79,13 @@ def summarize_articles_batch(items):
         articles_data.append(f"[Article {idx+1}]\nTitle: {item['title']}\nLink: {item['link']}")
     articles_text = "\n\n".join(articles_data)
     
-    prompt = f"""You are a professional Korean AI Tech journalist and expert researcher.
-Translate and analyze these English AI news articles, then summarize each in Korean.
+    prompt = f"""You are a professional Korean Real Estate expert and journalist.
+Analyze these Korean real estate news articles, then summarize each.
 
 {articles_text}
 
-For each article, create a highly catching Korean headline/title.
-Then, summarize the news into 3 precise key points using the Korean language.
+For each article, create a highly catching Korean headline/title that is natural and professional.
+Then, summarize the news into 3 precise key points in Korean.
 The summary MUST strictly follow this markdown format using '📌[1]', '📌[2]', '📌[3]' and bold text for key terms:
 📌[1] **key term**: detailed explanation in Korean.
 📌[2] **key term**: detailed explanation in Korean.
@@ -191,7 +204,7 @@ def main():
         print("Missing required environment variables: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY")
         return
 
-    print("Starting daily AI news automated crawler...")
+    print("Starting daily real estate news automated crawler...")
     news_items = fetch_latest_news_feed()
     if not news_items:
         print("No news articles found.")
@@ -202,15 +215,19 @@ def main():
     for item in news_items:
         title = item["title"]
         url = item["link"]
+        
+        # Resolve the original link first
+        resolved_url = resolve_google_news_link(url)
+        
         clean_title = re.sub(r'\s+-\s+[^(-]+$', '', title).strip()
         
-        if is_already_registered(url):
+        if is_already_registered(resolved_url):
             print(f"Skip (already registered): {clean_title}")
             continue
             
         new_articles.append({
             "title": clean_title,
-            "link": url
+            "link": resolved_url
         })
         
         # We only need up to 2 new articles
