@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS public.ai_news (
 ALTER TABLE public.ai_news ENABLE ROW LEVEL SECURITY;
 
 -- 3. 권한 정책(Policy) 추가
--- (누구나 읽을 수 있고, 크롤러봇(anon)은 글을 쓸 수 있게 설정)
-CREATE POLICY "Enable read for all" ON public.ai_news FOR SELECT TO public USING (true);
-CREATE POLICY "Enable insert for anon (crawler)" ON public.ai_news FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Enable all for service_role" ON public.ai_news FOR ALL TO service_role USING (true);
+-- (누구나 읽고 쓰고 수정하고 지울 수 있도록 허용)
+DROP POLICY IF EXISTS "Enable read for all" ON public.ai_news;
+DROP POLICY IF EXISTS "Enable insert for anon (crawler)" ON public.ai_news;
+DROP POLICY IF EXISTS "Enable all for service_role" ON public.ai_news;
+
+CREATE POLICY "Allow public read/write for ai_news" ON public.ai_news USING (true) WITH CHECK (true);
