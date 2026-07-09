@@ -37,8 +37,8 @@ export default function Home() {
     if (selectedNewsTab === 'GTX') {
       return titleAndDesc.includes('gtx');
     }
-    if (selectedNewsTab === 'SUBSCRIPTION') {
-      return titleAndDesc.includes('청약') || titleAndDesc.includes('분양') || titleAndDesc.includes('공급');
+    if (selectedNewsTab === 'HOT_NEWS') {
+      return titleAndDesc.includes('분양') || titleAndDesc.includes('공급') || titleAndDesc.includes('핫뉴스') || titleAndDesc.includes('시장') || titleAndDesc.includes('동향') || titleAndDesc.includes('매매') || titleAndDesc.includes('전세') || titleAndDesc.includes('가격');
     }
     if (selectedNewsTab === 'REGULATION') {
       return titleAndDesc.includes('규제') || titleAndDesc.includes('대책') || titleAndDesc.includes('법') || titleAndDesc.includes('세금') || titleAndDesc.includes('금리');
@@ -334,7 +334,7 @@ export default function Home() {
                 { id: 'ALL', label: '전체' },
                 { id: 'GTX', label: '🚀 GTX-C' },
                 { id: 'OKJEONG_YANGJU', label: '🏡 옥정·양주' },
-                { id: 'SUBSCRIPTION', label: '📋 청약·분양' },
+                { id: 'HOT_NEWS', label: '📋 핫뉴스·분양' },
                 { id: 'REGULATION', label: '⚖️ 규제·대책' }
               ].map(tab => (
                 <button
