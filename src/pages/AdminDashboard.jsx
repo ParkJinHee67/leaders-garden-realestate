@@ -2192,10 +2192,64 @@ export default function AdminDashboard() {
 
               <hr className="border-gray-100" />
 
-              {/* 7. 자주 묻는 질문 */}
+              {/* 7. 오늘의 부동산 브리핑 관리 */}
               <section>
                 <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">7</span>
+                  오늘의 부동산 브리핑 관리 (자동 크롤러 및 에러 조치)
+                </h3>
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
+                  <div>
+                    <p className="font-bold text-amber-800 text-sm">🤖 일일 부동산 뉴스 자동 크롤러 설정 (GitHub Actions)</p>
+                    <p className="text-gray-650 text-xs mt-1 leading-relaxed">
+                      매일 오전 8시(한국 시간)에 자동으로 부동산 뉴스를 수집하여 요약 노출하기 위해, GitHub 저장소에 환경 변수(Secrets)를 등록합니다.<br />
+                      <strong>설정 방법</strong>: GitHub 저장소 ➡️ <code>Settings</code> ➡️ <code>Secrets and variables</code> ➡️ <code>Actions</code> 메뉴에서 <code>[New repository secret]</code>를 눌러 다음 3가지 키를 등록합니다.
+                    </p>
+                    <ul className="list-disc pl-4 text-xs text-gray-600 mt-1.5 space-y-1">
+                      <li><code>SUPABASE_URL</code>: Supabase 프로젝트 URL (Settings ➡️ API 페이지에서 확인)</li>
+                      <li><code>SUPABASE_KEY</code>: Supabase 프로젝트 API Key (안전한 <code>service_role</code> 키 권장)</li>
+                      <li><code>GEMINI_API_KEY</code>: 구글 Gemini API Key (비밀키 발급 후 등록)</li>
+                    </ul>
+                  </div>
+
+                  <hr className="border-amber-200/50" />
+
+                  <div>
+                    <p className="font-bold text-red-800 text-sm">🚨 뉴스 수집 실패 시 오류 점검 및 수동 재작업</p>
+                    <p className="text-gray-650 text-xs mt-1 leading-relaxed">
+                      매일 아침 뉴스가 올라오지 않았다면, Gemini API 일시 장애나 Supabase DB 권한 오류 등으로 크롤러가 중단되었을 수 있습니다. GitHub Actions에서 에러 로그를 확인하고 즉시 수동으로 수집을 재작업할 수 있습니다.
+                    </p>
+                    <ol className="list-decimal pl-4 text-xs text-red-700 mt-2 space-y-1.5 leading-relaxed">
+                      <li>
+                        <strong>워크플로 관리 주소 접속</strong>:<br />
+                        <a 
+                          href="https://github.com/ParkJinHee67/leaders-garden-realestate/actions/workflows/daily_news.yml" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-blue-600 hover:underline font-bold font-mono"
+                        >
+                          https://github.com/ParkJinHee67/leaders-garden-realestate/actions/workflows/daily_news.yml
+                        </a>
+                      </li>
+                      <li>
+                        <strong>에러 로그 확인</strong>:
+                        실행 목록에서 가장 최근 실패(빨간색 ❌ 표시)한 항목이 있다면 클릭한 뒤, <code>publish-news</code> ➡️ <code>Run AI news crawler and publisher</code> 단계를 펼쳐 상세 에러 로그를 확인합니다.
+                      </li>
+                      <li>
+                        <strong>수동 재작업 실행</strong>:
+                        우측의 <code>[Run workflow]</code> 버튼을 누르고 초록색 <code>[Run workflow]</code> 버튼을 한번 더 클릭해 수동 실행합니다. (약 1분 후 메인 화면에 실시간 반영 완료)
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </section>
+
+              <hr className="border-gray-100" />
+
+              {/* 8. 자주 묻는 질문 */}
+              <section>
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">8</span>
                   자주 묻는 질문 (FAQ)
                 </h3>
                 <div className="space-y-3">
@@ -2219,10 +2273,10 @@ export default function AdminDashboard() {
 
               <hr className="border-gray-100" />
 
-              {/* 8. 연락처 */}
+              {/* 9. 연락처 */}
               <section>
                 <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">8</span>
+                  <span className="bg-teal-100 text-teal-700 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">9</span>
                   도움이 필요할 때
                 </h3>
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
