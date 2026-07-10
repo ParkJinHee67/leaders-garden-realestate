@@ -24,7 +24,7 @@ export default function Home() {
   // 부동산 뉴스 관련 State
   const [newsList, setNewsList] = useState([]);
   const [selectedNewsTab, setSelectedNewsTab] = useState('ALL');
-  const [newsLimit, setNewsLimit] = useState(4);
+  const [newsLimit, setNewsLimit] = useState(6);
   const [copiedId, setCopiedId] = useState(null);
 
   const filteredNews = newsList.filter(news => {
@@ -341,7 +341,7 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => {
                     setSelectedNewsTab(tab.id);
-                    setNewsLimit(4); // 필터 변경 시 페이징 초기화
+                    setNewsLimit(6); // 필터 변경 시 페이징 초기화
                   }}
                   className={`px-5 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm cursor-pointer ${
                     selectedNewsTab === tab.id
@@ -354,98 +354,103 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 뉴스 그리드 (데스크톱 4열, 태블릿 2열, 모바일 1열) */}
+            {/* 뉴스 그리드 (데스크톱/태블릿 2열, 모바일 1열, 가로 배치) */}
             {filteredNews.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {filteredNews.slice(0, newsLimit).map(news => {
                   const parsedPoints = parseNewsContent(news.content || news.description);
                   return (
                     <div
                       key={news.id}
                       onClick={() => window.open(news.source_url, '_blank')}
-                      className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-150 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col group h-full relative"
+                      className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-150 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col md:flex-row group h-full relative"
                     >
                       {/* 썸네일 이미지 */}
-                      <div className="relative h-44 w-full bg-gray-100 overflow-hidden shrink-0">
+                      <div className="relative w-full h-48 md:w-44 md:h-auto lg:w-48 shrink-0 overflow-hidden bg-gray-100">
                         {news.image_url ? (
                           <img
                             src={news.image_url}
                             alt={news.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 md:absolute md:inset-0"
                             loading="lazy"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80";
+                            }}
                           />
                         ) : (
                           // Fallback elegant real estate SVG
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 text-brand-green">
-                            <svg className="w-16 h-16 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 text-brand-green md:absolute md:inset-0">
+                            <svg className="w-12 h-12 opacity-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H3a.75.75 0 01-.75-.75V3.75A.75.75 0 013 3zm13.5 9h5.25m-5.25 3h5.25M16.5 9h5.25M21 3v18" />
                             </svg>
                           </div>
                         )}
-                        <span className="absolute top-3 left-3 bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                        <span className="absolute top-3 left-3 bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm z-10">
                           부동산 브리핑
                         </span>
                       </div>
 
                       {/* 카드 바디 */}
-                      <div className="p-5 flex flex-col flex-grow">
-                        {/* 등록일 및 공유 버튼 */}
-                        <div className="flex items-center justify-between text-gray-400 text-[11px] mb-3 font-semibold shrink-0">
-                          <span className="flex items-center gap-1">
-                            📅 {new Date(news.created_at).toLocaleString('ko-KR', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                              hour12: false
-                            })}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // 카드 클릭 원문 이동 방지
-                              navigator.clipboard.writeText(news.source_url);
-                              setCopiedId(news.id);
-                              setTimeout(() => setCopiedId(null), 2000);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition cursor-pointer"
-                            title="기사 링크 복사"
-                          >
-                            {copiedId === news.id ? (
-                              <span className="text-[10px] text-brand-green font-bold flex items-center gap-0.5">✓ 복사됨</span>
-                            ) : (
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.636-2.318a3 3 0 11.758 1.517l-4.636 2.318a3 3 0 11-.758-1.517z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.258l4.636 2.318a3 3 0 10.758-1.517l-4.636-2.318a3 3 0 10-.758 1.517z" />
-                              </svg>
-                            )}
-                          </button>
+                      <div className="p-5 flex flex-col flex-grow min-w-0 justify-between">
+                        <div>
+                          {/* 등록일 및 공유 버튼 */}
+                          <div className="flex items-center justify-between text-gray-400 text-[10px] mb-2 font-semibold shrink-0">
+                            <span className="flex items-center gap-1">
+                              📅 {new Date(news.created_at).toLocaleString('ko-KR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                              })}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // 카드 클릭 원문 이동 방지
+                                navigator.clipboard.writeText(news.source_url);
+                                setCopiedId(news.id);
+                                setTimeout(() => setCopiedId(null), 2000);
+                              }}
+                              className="p-1 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition cursor-pointer"
+                              title="기사 링크 복사"
+                            >
+                              {copiedId === news.id ? (
+                                <span className="text-[9px] text-brand-green font-bold">✓ 복사됨</span>
+                              ) : (
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.636-2.318a3 3 0 11.758 1.517l-4.636 2.318a3 3 0 11-.758-1.517z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.258l4.636 2.318a3 3 0 10.758-1.517l-4.636-2.318a3 3 0 10-.758 1.517z" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+
+                          {/* 뉴스 제목 */}
+                          <h3 className="font-extrabold text-sm text-gray-900 mb-3 line-clamp-2 group-hover:text-brand-orange transition-colors duration-200">
+                            {news.title}
+                          </h3>
+
+                          {/* AI 요약 리스트 */}
+                          <ul className="space-y-2 text-[11px] md:text-xs text-gray-600">
+                            {parsedPoints.map((point, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                <span className="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-[9px] font-extrabold mt-0.5">
+                                  {idx + 1}
+                                </span>
+                                <div className="min-w-0">
+                                  {point.keyword && (
+                                    <strong className="text-gray-800 font-extrabold mr-1 bg-brand-green/5 px-1 py-0.5 rounded text-[10px]">
+                                      {point.keyword}
+                                    </strong>
+                                  )}
+                                  <span className="text-gray-650">{point.text}</span>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-
-                        {/* 뉴스 제목 */}
-                        <h3 className="font-extrabold text-sm text-gray-900 mb-4 line-clamp-2 group-hover:text-brand-orange transition-colors duration-200">
-                          {news.title}
-                        </h3>
-
-                        {/* AI 요약 리스트 */}
-                        <ul className="space-y-3 text-xs text-gray-600 flex-grow">
-                          {parsedPoints.map((point, idx) => (
-                            <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-[10px] font-extrabold mt-0.5">
-                                {idx + 1}
-                              </span>
-                              <div>
-                                {point.keyword && (
-                                  <strong className="text-gray-800 font-extrabold mr-1 bg-brand-green/5 px-1 py-0.5 rounded text-[11px]">
-                                    {point.keyword}
-                                  </strong>
-                                )}
-                                <span className="text-gray-650">{point.text}</span>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
                     </div>
                   );
@@ -461,7 +466,7 @@ export default function Home() {
             {filteredNews.length > newsLimit && (
               <div className="text-center mt-12">
                 <button
-                  onClick={() => setNewsLimit(prev => prev + 4)}
+                  onClick={() => setNewsLimit(prev => prev + 6)}
                   className="bg-white border border-gray-300 text-gray-700 hover:text-brand-green hover:border-brand-green px-8 py-3.5 rounded-full font-bold text-xs md:text-sm shadow-sm transition-all duration-300 hover:scale-105 cursor-pointer"
                 >
                   브리핑 더 보기 ➔

@@ -2290,6 +2290,10 @@ export default function AdminDashboard() {
                                   src={news.image_url}
                                   alt="대표 이미지"
                                   className="w-12 h-12 object-cover rounded-lg border border-gray-200 shrink-0"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80";
+                                  }}
                                 />
                               ) : (
                                 <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 border border-gray-200">
