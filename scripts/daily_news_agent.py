@@ -14,6 +14,16 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 def resolve_google_news_link(url):
     """Resolve Google News redirection link to the actual original source URL."""
     try:
+        from googlenewsdecoder import gnewsdecoder
+        decoded = gnewsdecoder(url)
+        if decoded.get("status"):
+            return decoded["decoded_url"]
+        else:
+            print(f"Failed to decode Google News link using googlenewsdecoder: {decoded.get('message')}")
+    except Exception as e:
+        print(f"Error using googlenewsdecoder: {e}")
+
+    try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
@@ -175,6 +185,51 @@ Your response MUST be a valid JSON array matching this schema (do NOT wrap it in
     print("All models failed to generate summaries.")
     return None
 
+def extract_og_image(url):
+    """Fetch the article page and parse the og:image meta tag."""
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        res = requests.get(url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            # Simple regex search for og:image
+            match = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', res.text)
+            if not match:
+                match = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', res.text)
+            if match:
+                img_url = match.group(1).strip()
+                # Resolve relative URLs
+                if img_url.startswith("//"):
+                    img_url = "https:" + img_url
+                elif img_url.startswith("/"):
+                    from urllib.parse import urljoin
+                    img_url = urljoin(url, img_url)
+                return img_url
+    except Exception as e:
+        print(f"Failed to extract og:image for {url}: {e}")
+    return None
+
+def get_microlink_image(url):
+    """Fetch resolved image/screenshot URL from Microlink API at crawl time."""
+    try:
+        api_url = f"https://api.microlink.io?url={urllib.parse.quote(url)}"
+        res = requests.get(api_url, timeout=15)
+        if res.status_code == 200:
+            data = res.json()
+            if data.get("status") == "success":
+                # Try open graph image first
+                img_url = data.get("data", {}).get("image", {}).get("url")
+                if img_url:
+                    return img_url
+                # Try screenshot URL next
+                screenshot_url = data.get("data", {}).get("screenshot", {}).get("url")
+                if screenshot_url:
+                    return screenshot_url
+    except Exception as e:
+        print(f"Microlink API crawl-time request failed for {url}: {e}")
+    return None
+
 def register_to_supabase(title, summary_points, article_url):
     """Post summarized news to Supabase."""
     url = f"{SUPABASE_URL}/rest/v1/ai_news"
@@ -190,7 +245,15 @@ def register_to_supabase(title, summary_points, article_url):
     if yt_match:
         capture_url = f"https://img.youtube.com/vi/{yt_match.group(1)}/mqdefault.jpg"
     else:
-        capture_url = f"https://api.microlink.io?url={urllib.parse.quote(article_url)}&embed=image.url"
+        # Try direct og:image extraction first
+        capture_url = extract_og_image(article_url)
+        if not capture_url:
+            print(f"Direct og:image extraction failed. Trying Microlink for {article_url}...")
+            capture_url = get_microlink_image(article_url)
+        
+        if not capture_url:
+            print(f"No image could be extracted for {article_url}. Saving as None.")
+            capture_url = None
         
     payload = {
         "title": title,
