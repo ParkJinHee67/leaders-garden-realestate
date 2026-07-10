@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import urllib.parse
 import xml.etree.ElementTree as ET
 import requests
@@ -30,7 +31,8 @@ def fetch_latest_news_feed():
     try:
         response = requests.get(rss_url, timeout=15)
         if response.status_code != 200:
-            return []
+            print(f"Failed to fetch RSS feed. Status code: {response.status_code}")
+            return None
         
         # Parse XML RSS Feed
         root = ET.fromstring(response.content)
@@ -48,7 +50,7 @@ def fetch_latest_news_feed():
         return items
     except Exception as e:
         print(f"Error fetching RSS feed: {e}")
-        return []
+        return None
 
 def is_already_registered(source_url):
     """Check if the article URL already exists in Supabase."""
@@ -72,8 +74,12 @@ def is_already_registered(source_url):
 
 def summarize_articles_batch(items):
     """Call Google Gemini API to translate and summarize multiple articles in a single batch."""
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-    
+    # List of models to try in order of preference
+    models_to_try = [GEMINI_MODEL]
+    for fallback in ["gemini-1.5-flash", "gemini-2.5-flash-lite"]:
+        if fallback not in models_to_try:
+            models_to_try.append(fallback)
+            
     articles_data = []
     for idx, item in enumerate(items):
         articles_data.append(f"[Article {idx+1}]\nTitle: {item['title']}\nLink: {item['link']}")
@@ -112,54 +118,61 @@ Your response MUST be a valid JSON array matching this schema (do NOT wrap it in
     
     import time
     import json
-    max_retries = 5
-    for attempt in range(max_retries):
-        try:
-            res = requests.post(api_url, json=payload, timeout=40)
-            if res.status_code == 200:
-                result = res.json()
-                text_response = result["candidates"][0]["content"]["parts"][0]["text"]
+    
+    for model in models_to_try:
+        print(f"Attempting to generate summaries using model: {model}...")
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                res = requests.post(api_url, json=payload, timeout=40)
+                if res.status_code == 200:
+                    result = res.json()
+                    text_response = result["candidates"][0]["content"]["parts"][0]["text"]
+                    
+                    # Parse JSON response robustly
+                    cleaned_response = text_response.strip()
+                    if cleaned_response.startswith("```"):
+                        newline_idx = cleaned_response.find("\n")
+                        if newline_idx != -1:
+                            cleaned_response = cleaned_response[newline_idx:].strip()
+                        if cleaned_response.endswith("```"):
+                            cleaned_response = cleaned_response[:-3].strip()
+                    
+                    parsed = json.loads(cleaned_response)
+                    
+                    # Ensure parsed result is a list. If it is wrapped in an object, extract the list.
+                    if isinstance(parsed, dict):
+                        for val in parsed.values():
+                            if isinstance(val, list):
+                                parsed = val
+                                break
+                    
+                    if isinstance(parsed, list):
+                        return parsed
+                    else:
+                        print(f"Warning: parsed response is not a list/array: {parsed}")
+                        break
                 
-                # Parse JSON response robustly
-                cleaned_response = text_response.strip()
-                if cleaned_response.startswith("```"):
-                    newline_idx = cleaned_response.find("\n")
-                    if newline_idx != -1:
-                        cleaned_response = cleaned_response[newline_idx:].strip()
-                    if cleaned_response.endswith("```"):
-                        cleaned_response = cleaned_response[:-3].strip()
-                
-                parsed = json.loads(cleaned_response)
-                
-                # Ensure parsed result is a list. If it is wrapped in an object, extract the list.
-                if isinstance(parsed, dict):
-                    for val in parsed.values():
-                        if isinstance(val, list):
-                            parsed = val
-                            break
-                
-                if isinstance(parsed, list):
-                    return parsed
+                if res.status_code in (500, 503, 429):
+                    if res.status_code == 429:
+                        print(f"429 상세 오류: {res.text[:500]}")
+                    wait = 2 ** attempt * 5
+                    print(f"[{res.status_code}] '{model}' 모델 생성 지연/오류, {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
+                    time.sleep(wait)
+                    continue
                 else:
-                    print(f"Warning: parsed response is not a list/array: {parsed}")
-                    return None
-            
-            if res.status_code in (500, 503, 429):
-                if res.status_code == 429:
-                    print(f"429 상세 오류: {res.text[:500]}")
+                    print(f"Gemini API returned error: {res.status_code} - {res.text}")
+                    break
+            except Exception as e:
                 wait = 2 ** attempt * 5
-                print(f"[{res.status_code}] {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
+                print(f"요청/파싱 실패: {e} — {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
                 time.sleep(wait)
-                continue
-            else:
-                print(f"Gemini API returned error: {res.status_code} - {res.text}")
-                return None
-        except Exception as e:
-            wait = 2 ** attempt * 5
-            print(f"요청/파싱 실패: {e} — {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
-            time.sleep(wait)
-            
-    print("최대 재시도 횟수 초과, 배치 요약을 건너뜁니다.")
+                
+        print(f"Model '{model}' failed to generate summaries.")
+        
+    print("All models failed to generate summaries.")
     return None
 
 def register_to_supabase(title, summary_points, article_url):
@@ -202,12 +215,15 @@ def register_to_supabase(title, summary_points, article_url):
 def main():
     if not SUPABASE_URL or not SUPABASE_KEY or not GEMINI_API_KEY:
         print("Missing required environment variables: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY")
-        return
+        sys.exit(1)
 
     print("Starting daily real estate news automated crawler...")
     news_items = fetch_latest_news_feed()
+    if news_items is None:
+        print("Failed to fetch RSS feed due to an error.")
+        sys.exit(1)
     if not news_items:
-        print("No news articles found.")
+        print("No news articles found in the feed.")
         return
 
     # 1. Filter unregistered news items
@@ -252,7 +268,7 @@ def main():
     summaries = summarize_articles_batch(new_articles)
     if not summaries:
         print("Failed to generate batch summaries.")
-        return
+        sys.exit(1)
 
     # Create mapping by link for easy lookup
     summary_map = {item["link"]: item for item in summaries if isinstance(item, dict) and "link" in item}
@@ -283,6 +299,10 @@ def main():
         success = register_to_supabase(ko_title, ko_summary, url)
         if success:
             registered_count += 1
+
+    if registered_count == 0 and len(new_articles) > 0:
+        print("Failed to register any new articles in Supabase.")
+        sys.exit(1)
 
     print(f"Automated crawler finished. Registered {registered_count} new articles.")
 

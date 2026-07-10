@@ -323,6 +323,19 @@ VITE_ADMIN_PASSWORD=[관리자 비밀번호]
 4. 필요시 GitHub Actions 탭에서 **Daily AI News Auto Publisher** 워크플로우를 선택하고 **[Run workflow]**를 눌러 수동으로 즉시 기사를 수집할 수도 있습니다.
 5. 관리자 페이지의 **[부동산 뉴스 관리]** 탭에서 크롤러가 수집한 뉴스 기사를 직접 확인, 수정, 삭제하거나 새 기사를 직접 추가 등록할 수 있습니다.
 
+### Step 9. 뉴스 수집 실패 시 오류 점검 및 수동 재작업 (Troubleshooting)
+
+만약 매일 아침 부동산 뉴스가 업데이트되지 않았다면, Google Gemini API 호출 실패(존재하지 않는 모델명 호출이나 서버 일시 장애 등) 또는 Supabase 권한 오류 등으로 인해 작동이 중단되었을 수 있습니다.
+
+**해결책: GitHub Actions에서 에러 로그 확인 및 수동 재작업**
+GitHub 저장소에 수동 실행 기능(`workflow_dispatch`)이 연동되어 있어 실패 시 에러 로그를 확인하거나 즉시 뉴스 수집을 다시 시도할 수 있습니다.
+
+* **에러 로그 확인 및 재작업 실행 주소**: [GitHub Actions Daily Real Estate News Workflow](https://github.com/ParkJinHee67/leaders-garden-realestate/actions/workflows/daily_news.yml)
+1. 위의 주소로 접속하거나, GitHub 저장소 상단 탭 메뉴의 **Actions** ➡️ 좌측 목록에서 **`Daily AI News Auto Publisher`**를 선택합니다.
+2. 목록에서 가장 최근 실패(빨간색 ❌ 표시)한 항목이 있다면 클릭한 뒤, **`publish-news`** ➡️ **`Run AI news crawler and publisher`** 단계를 확장하여 상세 에러 로그를 확인합니다.
+3. 수동 재작업을 실행하려면 우측의 **`Run workflow`** 버튼을 누르고 초록색 **`Run workflow`** 버튼을 한번 더 클릭합니다.
+4. 약 1분 후 실행이 완료되면 홈페이지의 "오늘의 부동산 브리핑" 영역에 뉴스가 실시간으로 반영됩니다.
+
 ---
 
 ## 8. 자주 묻는 질문 (FAQ)
