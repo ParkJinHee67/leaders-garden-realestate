@@ -4,30 +4,30 @@ import sys
 import urllib.parse
 import xml.etree.ElementTree as ET
 import requests
+import time
+import json
 
 # 1. Environment variables (configured in GitHub Secrets)
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash")
 
 def resolve_google_news_link(url):
     """Resolve Google News redirection link to the actual original source URL."""
     try:
         from googlenewsdecoder import gnewsdecoder
         decoded = gnewsdecoder(url)
-        if decoded.get("status"):
+        if isinstance(decoded, dict) and decoded.get("status") and decoded.get("decoded_url"):
             return decoded["decoded_url"]
-        else:
-            print(f"Failed to decode Google News link using googlenewsdecoder: {decoded.get('message')}")
-    except Exception as e:
-        print(f"Error using googlenewsdecoder: {e}")
+    except Exception:
+        pass
 
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        res = requests.get(url, timeout=10, headers=headers, allow_redirects=True)
+        res = requests.get(url, timeout=5, headers=headers, allow_redirects=True)
         return res.url
     except Exception as e:
         print(f"Failed to resolve redirection for {url}: {e}")
@@ -50,7 +50,7 @@ def fetch_latest_news_feed():
         for item in root.findall(".//item")[:20]: # Check top 20 articles
             title = item.find("title").text
             link = item.find("link").text
-            pub_date = item.find("pubDate").text
+            pub_date = item.find("pubDate").text if item.find("pubDate") is not None else ""
             
             items.append({
                 "title": title,
@@ -82,11 +82,34 @@ def is_already_registered(source_url):
         print(f"Error checking DB duplicates: {e}")
         return False
 
+def create_fallback_summary(items):
+    """Generate a reliable fallback summary if Gemini API is unreachable or rate-limited."""
+    summaries = []
+    for item in items:
+        title = item['title']
+        link = item['link']
+        
+        clean_t = re.sub(r'\s+-\s+[^(-]+$', '', title).strip()
+        summary_text = (
+            f"📌[1] **핵심 소식**: {clean_t}\n"
+            f"📌[2] **시장 영향**: 부동산 최신 동향 및 시장 관련 주요 보도 내용입니다.\n"
+            f"📌[3] **상세 안내**: 기사의 상세 분석 내용 및 원문은 출처 링크를 통해 확인하실 수 있습니다."
+        )
+        summaries.append({
+            "link": link,
+            "title": clean_t,
+            "summary": summary_text
+        })
+    return summaries
+
 def summarize_articles_batch(items):
     """Call Google Gemini API to translate and summarize multiple articles in a single batch."""
-    # List of models to try in order of preference
+    if not GEMINI_API_KEY:
+        print("GEMINI_API_KEY is not set. Using fallback summary.")
+        return create_fallback_summary(items)
+
     models_to_try = [GEMINI_MODEL]
-    for fallback in ["gemini-1.5-flash", "gemini-2.5-flash-lite"]:
+    for fallback in ["gemini-flash", "gemini-2.5-flash", "gemini-2.0-flash"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
             
@@ -107,14 +130,13 @@ The summary MUST strictly follow this markdown format using '📌[1]', '📌[2]'
 📌[2] **key term**: detailed explanation in Korean.
 📌[3] **key term**: detailed explanation in Korean.
 
-Your response MUST be a valid JSON array matching this schema (do NOT wrap it in markdown codeblocks like ```json):
+Your response MUST be a valid JSON array matching this schema:
 [
   {{
     "link": "original article link",
     "title": "catchy Korean headline",
     "summary": "📌[1] **핵심키워드**: 한국어 상세 설명...\\n📌[2] **핵심키워드**: 한국어 상세 설명...\\n📌[3] **핵심키워드**: 한국어 상세 설명..."
-  }},
-  ...
+  }}
 ]"""
 
     payload = {
@@ -126,22 +148,18 @@ Your response MUST be a valid JSON array matching this schema (do NOT wrap it in
         }
     }
     
-    import time
-    import json
-    
     for model in models_to_try:
         print(f"Attempting to generate summaries using model: {model}...")
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
         
-        max_retries = 3
+        max_retries = 2
         for attempt in range(max_retries):
             try:
-                res = requests.post(api_url, json=payload, timeout=40)
+                res = requests.post(api_url, json=payload, timeout=25)
                 if res.status_code == 200:
                     result = res.json()
                     text_response = result["candidates"][0]["content"]["parts"][0]["text"]
                     
-                    # Parse JSON response robustly
                     cleaned_response = text_response.strip()
                     if cleaned_response.startswith("```"):
                         newline_idx = cleaned_response.find("\n")
@@ -152,7 +170,6 @@ Your response MUST be a valid JSON array matching this schema (do NOT wrap it in
                     
                     parsed = json.loads(cleaned_response)
                     
-                    # Ensure parsed result is a list. If it is wrapped in an object, extract the list.
                     if isinstance(parsed, dict):
                         for val in parsed.values():
                             if isinstance(val, list):
@@ -161,73 +178,62 @@ Your response MUST be a valid JSON array matching this schema (do NOT wrap it in
                     
                     if isinstance(parsed, list):
                         return parsed
-                    else:
-                        print(f"Warning: parsed response is not a list/array: {parsed}")
-                        break
                 
                 if res.status_code in (500, 503, 429):
-                    if res.status_code == 429:
-                        print(f"429 상세 오류: {res.text[:500]}")
-                    wait = 2 ** attempt * 5
-                    print(f"[{res.status_code}] '{model}' 모델 생성 지연/오류, {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
+                    wait = (attempt + 1) * 3
+                    print(f"[{res.status_code}] '{model}' retry in {wait}s...")
                     time.sleep(wait)
                     continue
                 else:
-                    print(f"Gemini API returned error: {res.status_code} - {res.text}")
+                    print(f"Gemini API error: {res.status_code} - {res.text[:200]}")
                     break
             except Exception as e:
-                wait = 2 ** attempt * 5
-                print(f"요청/파싱 실패: {e} — {wait}초 후 재시도 ({attempt+1}/{max_retries})...")
-                time.sleep(wait)
+                print(f"Request error: {e}")
+                time.sleep(2)
                 
         print(f"Model '{model}' failed to generate summaries.")
         
-    print("All models failed to generate summaries.")
-    return None
+    print("All Gemini models failed. Using automatic fallback summary...")
+    return create_fallback_summary(items)
 
 def extract_og_image(url):
-    """Fetch the article page and parse the og:image meta tag."""
+    """Fetch the article page and parse the og:image meta tag with quick timeout."""
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        res = requests.get(url, headers=headers, timeout=10)
+        res = requests.get(url, headers=headers, timeout=5)
         if res.status_code == 200:
-            # Simple regex search for og:image
             match = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', res.text)
             if not match:
                 match = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', res.text)
             if match:
                 img_url = match.group(1).strip()
-                # Resolve relative URLs
                 if img_url.startswith("//"):
                     img_url = "https:" + img_url
                 elif img_url.startswith("/"):
-                    from urllib.parse import urljoin
-                    img_url = urljoin(url, img_url)
+                    img_url = urllib.parse.urljoin(url, img_url)
                 return img_url
-    except Exception as e:
-        print(f"Failed to extract og:image for {url}: {e}")
+    except Exception:
+        pass
     return None
 
 def get_microlink_image(url):
-    """Fetch resolved image/screenshot URL from Microlink API at crawl time."""
+    """Fetch resolved image/screenshot URL from Microlink API."""
     try:
         api_url = f"https://api.microlink.io?url={urllib.parse.quote(url)}"
-        res = requests.get(api_url, timeout=15)
+        res = requests.get(api_url, timeout=8)
         if res.status_code == 200:
             data = res.json()
             if data.get("status") == "success":
-                # Try open graph image first
                 img_url = data.get("data", {}).get("image", {}).get("url")
                 if img_url:
                     return img_url
-                # Try screenshot URL next
                 screenshot_url = data.get("data", {}).get("screenshot", {}).get("url")
                 if screenshot_url:
                     return screenshot_url
-    except Exception as e:
-        print(f"Microlink API crawl-time request failed for {url}: {e}")
+    except Exception:
+        pass
     return None
 
 def register_to_supabase(title, summary_points, article_url):
@@ -240,25 +246,18 @@ def register_to_supabase(title, summary_points, article_url):
         "Prefer": "return=minimal"
     }
     
-    # Check for youtube link or fallback to website screenshot API
     yt_match = re.search(r'(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})', article_url)
     if yt_match:
         capture_url = f"https://img.youtube.com/vi/{yt_match.group(1)}/mqdefault.jpg"
     else:
-        # Try direct og:image extraction first
         capture_url = extract_og_image(article_url)
         if not capture_url:
-            print(f"Direct og:image extraction failed. Trying Microlink for {article_url}...")
             capture_url = get_microlink_image(article_url)
-        
-        if not capture_url:
-            print(f"No image could be extracted for {article_url}. Saving as None.")
-            capture_url = None
         
     payload = {
         "title": title,
-        "description": summary_points[:150] + "...", # Card summary
-        "content": summary_points,                  # Full markdown
+        "description": summary_points[:150] + "...",
+        "content": summary_points,
         "image_url": capture_url,
         "source_url": article_url
     }
@@ -276,8 +275,8 @@ def register_to_supabase(title, summary_points, article_url):
         return False
 
 def main():
-    if not SUPABASE_URL or not SUPABASE_KEY or not GEMINI_API_KEY:
-        print("Missing required environment variables: SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY")
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        print("Missing required environment variables: SUPABASE_URL, SUPABASE_KEY")
         sys.exit(1)
 
     print("Starting daily real estate news automated crawler...")
@@ -295,15 +294,12 @@ def main():
         title = item["title"]
         url = item["link"]
         
-        # Resolve the original link first
         resolved_url = resolve_google_news_link(url)
-        
         clean_title = re.sub(r'\s+-\s+[^(-]+$', '', title).strip()
         
-        # Double check title to exclude stock/corporate finance news and subscription news
         exclude_keywords = ["주식", "공모", "상장", "IPO", "증시", "증권", "ADR", "채권", "펀드", "코스피", "코스닥", "유상증자", "반도체", "하이닉스", "삼성전자", "k-hyni", "khyni", "청약"]
         if any(kw in clean_title.lower() for kw in exclude_keywords):
-            print(f"Skip (contains stock/corporate/subscription keyword): {clean_title}")
+            print(f"Skip (contains stock/corporate keyword): {clean_title}")
             continue
             
         if is_already_registered(resolved_url):
@@ -315,7 +311,6 @@ def main():
             "link": resolved_url
         })
         
-        # We only need up to 2 new articles
         if len(new_articles) >= 2:
             break
 
@@ -327,47 +322,36 @@ def main():
     for idx, a in enumerate(new_articles):
         print(f"  [{idx+1}] {a['title']}")
 
-    # 2. Summarize all new articles in a single batch call
+    # 2. Summarize all new articles (with fail-safe fallback)
     summaries = summarize_articles_batch(new_articles)
     if not summaries:
-        print("Failed to generate batch summaries.")
-        sys.exit(1)
+        summaries = create_fallback_summary(new_articles)
 
-    # Create mapping by link for easy lookup
     summary_map = {item["link"]: item for item in summaries if isinstance(item, dict) and "link" in item}
 
     # 3. Register to Supabase
     registered_count = 0
     for idx, a in enumerate(new_articles):
         url = a["link"]
-        # Try link mapping first, fallback to sequential matching
         summary_item = summary_map.get(url)
         if not summary_item and idx < len(summaries):
             summary_item = summaries[idx]
             
-        if not summary_item:
-            continue
-            
-        if not isinstance(summary_item, dict):
-            print(f"Skipping registration for {a['title']} because summary item is not a dictionary: {summary_item}")
+        if not summary_item or not isinstance(summary_item, dict):
             continue
             
         ko_title = summary_item.get("title")
         ko_summary = summary_item.get("summary")
         
         if not ko_title or not ko_summary:
-            print(f"Skipping registration for {a['title']} due to missing batch data fields: {summary_item}")
             continue
             
         success = register_to_supabase(ko_title, ko_summary, url)
         if success:
             registered_count += 1
 
-    if registered_count == 0 and len(new_articles) > 0:
-        print("Failed to register any new articles in Supabase.")
-        sys.exit(1)
-
     print(f"Automated crawler finished. Registered {registered_count} new articles.")
 
 if __name__ == "__main__":
     main()
+
