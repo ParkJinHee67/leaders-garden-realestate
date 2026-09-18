@@ -11,7 +11,7 @@ import json
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 
 def resolve_google_news_link(url):
     """Resolve Google News redirection link to the actual original source URL."""
@@ -109,7 +109,7 @@ def summarize_articles_batch(items):
         return create_fallback_summary(items)
 
     models_to_try = [GEMINI_MODEL]
-    for fallback in ["gemini-flash", "gemini-2.5-flash", "gemini-2.0-flash"]:
+    for fallback in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
             
