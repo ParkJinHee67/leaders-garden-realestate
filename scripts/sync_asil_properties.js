@@ -5,9 +5,29 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Windows 바탕화면 토스트 알림 표시 함수
+function notifyWindowsToast(title, message) {
+  try {
+    const psCmd = `
+      [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null;
+      $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);
+      $textNodes = $template.GetElementsByTagName('text');
+      $textNodes.Item(0).AppendChild($template.CreateTextNode('${title}')) | Out-Null;
+      $textNodes.Item(1).AppendChild($template.CreateTextNode('${message}')) | Out-Null;
+      $toast = [Windows.UI.Notifications.ToastNotification]::new($template);
+      [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('LeadersGarden').Show($toast);
+    `.replace(/\\r?\\n\\s*/g, ' ');
+
+    exec(`powershell -NoProfile -Command "${psCmd}"`, () => {});
+  } catch (e) {
+    // 알림 실패 시 무시
+  }
+}
 
 // 환경 변수 로드
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -418,6 +438,11 @@ async function runAsilSync() {
   console.log(`- 🚨 광고 종료(거래완료 처리): ${completeCount} 건`);
   console.log('='.repeat(60));
   console.log(`[${new Date().toLocaleString('ko-KR')}] 매물 동기화가 성공적으로 완료되었습니다.\n`);
+
+  notifyWindowsToast(
+    '🏡 리더스가든 부동산 매물 동기화 완료',
+    `신규 ${insertCount}건, 수정 ${updateCount}건, 광고종료 ${completeCount}건 (총 ${parsedData.length}건)`
+  );
 }
 
 runAsilSync().catch(err => {
