@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import PropertyCard from '../components/PropertyCard';
 import LocationMap from '../components/LocationMap';
 import ErrorBoundary from '../components/ErrorBoundary';
+import HouseAds from '../components/HouseAds';
 import { NavermapsProvider } from 'react-naver-maps';
 import { properties as fallbackProperties } from '../data';
 import { Link } from 'react-router-dom';
@@ -473,6 +474,9 @@ export default function Home() {
                 </button>
               </div>
             )}
+
+            {/* 운영자의 다른 서비스 */}
+            <HouseAds />
           </div>
         </section>
 
