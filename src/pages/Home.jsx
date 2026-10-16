@@ -259,6 +259,33 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Promo Motion Graphic Video Section (사무실 사진 대문 아래 배치) */}
+        <section id="promo-video" className="bg-[#07090e] py-10 md:py-14 text-white border-b border-slate-800">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="text-center mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 text-sky-400 text-xs font-bold tracking-wider uppercase border border-sky-500/30 mb-2 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span> OFFICIAL PROMOTION
+              </span>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                옥정 리더스가든 부동산 <span className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">15초 홍보 영상</span>
+              </h2>
+              <p className="text-xs md:text-sm text-slate-400 mt-1.5">
+                소속 아파트 최고 거래 전문 · 유현휘 소장의 신뢰와 전문성을 담은 모션그래픽
+              </p>
+            </div>
+
+            {/* Video Player Frame */}
+            <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-950">
+              <iframe
+                src="/promo-motion.html"
+                title="옥정 리더스가든 부동산 유현휘 소장 15초 프로모션 모션그래픽"
+                className="w-full h-[780px] md:h-[840px] border-0 block"
+                allow="autoplay; camera; microphone; display-capture"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* GTX-C Banner */}
         <div className="bg-gradient-to-r from-brand-orange to-orange-500 py-5 px-4 text-white text-center transform transition duration-300 hover:shadow-lg relative overflow-hidden group border-y border-orange-600">
           <Link to="/gtx" className="block absolute inset-0 z-20"></Link>
